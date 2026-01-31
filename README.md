@@ -1,6 +1,18 @@
-# Pi Agent Config
+# Pi Config
 
 My personal [pi](https://github.com/badlogic/pi) configuration — skills and extensions that make pi work the way I like.
+
+## Installation
+
+```bash
+pi install git:github.com/HazAT/pi-config
+```
+
+## Update
+
+```bash
+pi update
+```
 
 ## Skills
 
@@ -22,20 +34,14 @@ My personal [pi](https://github.com/badlogic/pi) configuration — skills and ex
 | `memory.ts` | Persistent memory system — global (`~/.pi/memory.md`) and project (`.pi/memory.md`) |
 | `prefill-editor.ts` | Tool to prefill the editor with text (used by reload-after-skill) |
 
-## Installation
+## What's Included
 
-Clone to `~/.pi/agent/`:
+- **Skills** teach pi new behaviors and workflows
+- **Extensions** add tools and capabilities (memory system, editor prefill)
 
-```bash
-git clone https://github.com/YOUR_USERNAME/pi-config.git ~/.pi/agent
-```
+## What's NOT Included
 
-Or if you already have a `~/.pi/agent/` folder, clone elsewhere and symlink/copy the skills and extensions.
-
-## Usage
-
-Skills and extensions are automatically discovered by pi from `~/.pi/agent/`.
-
-The memory extension creates/reads:
-- `~/.pi/memory.md` — global facts (machine, preferences)
-- `.pi/memory.md` — project-specific facts (in any project directory)
+These are machine-specific and excluded via `.gitignore`:
+- `auth.json` — API keys
+- `sessions/` — conversation history
+- `~/.pi/memory.md` — your personal memory file (created locally)

@@ -4,9 +4,7 @@ auth.json
 # Local state - don't sync
 sessions/
 bin/
-
-# Settings might have local paths - optional to sync
-# settings.json
+settings.json
 
 # OS files
 .DS_Store

@@ -69,11 +69,13 @@ find . -type f -name "*.ts" | head -20  # or relevant extension
 
 Prefer **one question at a time** (see `thoughtful-questions` skill).
 
-But during complex brainstorming, you might surface several considerations. If you do, let the user know:
+But during complex brainstorming, you might need to surface several considerations. When you do:
 
-> "I have a few things to clarify. You can answer inline, or use `/answer` (or `Ctrl+.`) to answer them all in one go."
+1. **Format questions clearly** — End each with `?` so the extractor can find them
+2. **Tell the user about `/answer`**:
+   > "I have a few questions to clarify. You can answer inline, or use `/answer` (Ctrl+.) to answer them in a structured Q&A interface."
 
-The `/answer` tool extracts questions from your message into an interactive Q&A UI.
+The `/answer` tool extracts questions from your message and presents an interactive UI where the user can navigate and answer each one efficiently. It's much better than a back-and-forth volley of questions.
 
 ## Example Flow
 

@@ -50,6 +50,11 @@ Use the `think-before-building` skill:
 - Ask meaningful questions (one at a time!)
 - Align on scope and direction
 
+**When you have multiple questions:** Format them clearly with `?` endings. Tell the user:
+> "I have a few questions to clarify. You can answer inline, or use `/answer` (Ctrl+.) to answer them all in a structured Q&A interface."
+
+The `/answer` tool extracts questions from your message and presents an interactive UI for the user to answer each one efficiently.
+
 ### 3. Write the Plan
 
 Once aligned, create a plan file:

@@ -81,17 +81,23 @@ The command/message appears in the conversation as a user message.`,
       const { command } = pendingCommand;
       pendingCommand = null;
       
-      // Special handling for known commands via events
+      // Special handling for /answer via event bus (needs context)
       if (command === "/answer") {
-        // Trigger answer extension directly via event bus
         setTimeout(() => {
           pi.events.emit("trigger:answer", ctx);
         }, 100);
-      } else {
-        // For other commands, notify user to press Enter
+      } 
+      // Auto-execute simple commands via sendUserMessage
+      else if (command.startsWith("/")) {
+        setTimeout(() => {
+          pi.sendUserMessage(command);
+        }, 100);
+      }
+      // For non-command text, prefill editor
+      else {
         if (ctx.hasUI) {
           ctx.ui.setEditorText(command);
-          ctx.ui.notify(`Press Enter to run: ${command}`, "info");
+          ctx.ui.notify(`Press Enter to send: ${command}`, "info");
         }
       }
     }

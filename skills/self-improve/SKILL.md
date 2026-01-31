@@ -106,9 +106,6 @@ This avoids unnecessary back-and-forth and respects the user's time.
 
 ## After Creating
 
-Tell the user:
-1. What skill name you chose
-2. What it will do
-3. That it's now active for all future pi sessions
-4. They can view/edit it at `~/.pi/agent/skills/<name>/SKILL.md`
-5. They can delete it anytime by removing that directory
+1. **Run `/reload`** — Use `execute_command(command="/reload", reason="Activating the new skill")` to immediately activate it
+2. **Tell the user** what skill you created and what it does
+3. Let them know they can view/edit it at `~/.pi/agent/skills/<name>/SKILL.md`

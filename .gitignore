@@ -2,6 +2,7 @@
 auth.json
 
 # Local state - don't sync
+.pi/
 sessions/
 bin/
 settings.json

@@ -57,6 +57,76 @@ You can execute slash commands yourself using the `execute_command` tool. Use th
 
 The command appears in the session as a user message, so it's part of the conversation history.
 
+## Delegate to Subagents
+
+**Prefer subagent delegation** for any task that involves multiple steps or could benefit from specialized focus.
+
+### Available Agents
+
+| Agent | Purpose | Model |
+|-------|---------|-------|
+| `scout` | Fast codebase reconnaissance | Haiku (fast, cheap) |
+| `planner` | Creates detailed plans and todos | Opus (heavy thinking) |
+| `worker` | Implements tasks from todos | Opus (heavy thinking) |
+| `reviewer` | Reviews code for quality/security | Opus (heavy thinking) |
+
+### When to Delegate
+
+- **Multi-step features** → Use a chain: scout → planner → worker(s) → reviewer
+- **Code review needed** → Delegate to `reviewer`
+- **Need context first** → Start with `scout`
+- **Todos ready to execute** → Spawn `worker` agents (parallel if independent)
+
+### Chain Patterns
+
+**Full feature implementation:**
+```typescript
+{ chain: [
+  { agent: "scout", task: "Gather context for {task}" },
+  { agent: "planner" },  // reads context.md, outputs plan.md + todos
+  { agent: "worker" },   // implements from todos, maintains progress.md
+  { agent: "reviewer" }  // reviews the implementation
+]}
+```
+
+**Quick implementation (context already known):**
+```typescript
+{ chain: [
+  { agent: "worker", task: "Implement {task}" },
+  { agent: "reviewer" }
+]}
+```
+
+**Parallel workers (independent todos):**
+```typescript
+{ chain: [
+  { agent: "scout", task: "Gather context" },
+  { agent: "planner" },
+  { parallel: [
+    { agent: "worker", task: "Implement TODO-xxxx" },
+    { agent: "worker", task: "Implement TODO-yyyy" }
+  ]},
+  { agent: "reviewer" }
+]}
+```
+
+### Benefits
+
+- **Specialized focus** — Each agent does one thing well
+- **Faster execution** — Haiku for recon, Sonnet for thinking
+- **Better quality** — Automatic review step catches issues
+- **Parallel work** — Independent tasks run concurrently
+- **Clear handoffs** — Context flows through chain directory
+
+### When NOT to Delegate
+
+- Quick fixes (< 2 minutes of work)
+- Simple questions
+- Single-file changes with obvious scope
+- When the user wants to stay hands-on
+
+**Default to delegation for anything substantial.**
+
 ## Skill Triggers (Quick Reference)
 
 | When... | Load skill... |

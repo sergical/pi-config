@@ -170,19 +170,48 @@ If they suggest changes:
 
 ---
 
-## Hand Off to Planning
+## Hand Off to Execution
 
 Once the design is validated:
 
-> "Design is solid. Ready to formalize this into a plan with todos?
+> "Design is solid. Ready to execute?
 > 
-> I'll write up the plan section by section, then break it into bite-sized tasks we can execute."
+> I'll kick off a chain: scout gathers final context, planner creates todos, workers implement, reviewer checks quality."
 
-**If yes:** Use `plan-before-coding` skill
+### Default: Full Subagent Chain
 
-**If they want to keep discussing:** Continue the conversation
+```typescript
+{ chain: [
+  { agent: "scout", task: "Gather implementation context for: [feature summary]" },
+  { agent: "planner", task: "Create plan and todos for: [feature summary]" },
+  { agent: "worker" },  // implements from todos
+  { agent: "reviewer" } // reviews the implementation
+]}
+```
 
-**If it's small enough:** Maybe skip the formal plan and just do it
+The clarify TUI will let you preview and adjust before execution.
+
+### Alternative: Just Planning
+
+If they want to review the plan before execution:
+
+> "Want to see the plan first before I start implementation?"
+
+Then use `plan-before-coding` skill — you create the plan, they review, then spawn workers.
+
+### Alternative: Keep Discussing
+
+If they want to keep exploring:
+
+> "Happy to keep discussing. What aspect should we dig into?"
+
+### Alternative: Small Enough to Just Do
+
+If it's simple enough:
+
+> "This is small enough I can just implement it directly. Want me to go ahead?"
+
+**Default is the full subagent chain** — automatic scout → plan → implement → review.
 
 ---
 

@@ -194,56 +194,61 @@ Plan: .pi/plans/YYYY-MM-DD-plan-name.md
 
 ---
 
-## 4. Choose Execution
+## 4. Execute with Subagents
 
-After todos are created:
+After todos are created, **default to subagent delegation**:
 
-> "Plan and todos are ready. How would you like to execute?
-> 
-> 1. **Same session** — I'll work through each task, you review as we go
-> 2. **Sub-agents** — Spawn separate agents, each gets a specific todo with full context
-> 3. **Later** — We'll come back to implementation another time"
+> "Plan and todos are ready. I'll kick off the worker agents to implement these."
 
-### Option 1: Same Session
+### Default: Subagent Chain
 
-Work through todos sequentially:
+Use the `subagent` tool to spawn workers:
+
+**For sequential todos (dependencies):**
+```typescript
+{ chain: [
+  { agent: "worker", task: "Implement TODO-xxxx: [title]" },
+  { agent: "worker", task: "Implement TODO-yyyy: [title]" },
+  { agent: "reviewer", task: "Review the implementation" }
+]}
+```
+
+**For independent todos (parallel):**
+```typescript
+{ chain: [
+  { parallel: [
+    { agent: "worker", task: "Implement TODO-xxxx: [title]" },
+    { agent: "worker", task: "Implement TODO-yyyy: [title]" }
+  ]},
+  { agent: "reviewer", task: "Review all changes" }
+]}
+```
+
+The chain directory (`{chain_dir}`) automatically shares:
+- `context.md` — Codebase context (if scout ran)
+- `plan.md` — The plan you wrote
+- `progress.md` — Updated by workers
+
+### Alternative: Same Session
+
+If the user prefers hands-on work:
+
+> "Would you rather I work through these myself while you review?"
+
+Then work through todos sequentially:
 1. Claim the todo
 2. Implement
 3. Verify (use `verification-before-completion`)
 4. Close the todo
 5. Move to next
 
-### Option 2: Sub-Agent Handoff
-
-For each todo, prepare handoff context:
-
-> "To work on this with sub-agents, start a new session with:
-> 
-> ```
-> Work on TODO-xxxx: [task title]
-> 
-> Plan: .pi/plans/YYYY-MM-DD-feature.md
-> 
-> Task: [full task description]
-> 
-> Files to read first:
-> - [relevant file 1]
-> - [relevant file 2]
-> 
-> Acceptance criteria:
-> - [criterion 1]
-> - [criterion 2]
-> 
-> When done: claim the todo, implement, test, then close it.
-> ```"
-
-**Don't claim todos yourself** if sub-agents will pick them up — leave them open for pickup.
-
-### Option 3: Later
+### Alternative: Later
 
 Plan and todos are saved. Come back anytime with:
 - `/todos` to see the visual manager
 - `todo(action: "list")` to see what's open
+
+**Default is subagent delegation** — only do same-session if user explicitly prefers it.
 
 ---
 

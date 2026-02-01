@@ -1,208 +1,285 @@
 ---
 name: plan-before-coding
 description: |
-  Applies when starting a larger feature or project that involves significant coding.
-  Before implementing: check working directory, brainstorm, write a detailed plan,
-  then create todos for each task. Todos enable parallel work and sub-agent handoffs.
+  Applies after brainstorming or when starting a larger feature that needs a plan.
+  Write the plan section-by-section with verification, then create bite-sized todos.
+  Ends with execution options: same session or sub-agents with specific context.
 ---
 
 # Plan Before Coding
 
-For larger coding work, follow this workflow before touching code.
+Write a verified plan, create todos, then decide how to execute.
+
+**Announce at start:** "Writing up the plan. I'll go section by section — let me know if anything needs adjustment."
+
+---
 
 ## When This Applies
 
-- Building a new feature (not a quick fix)
-- Starting a new project
-- Significant refactoring
-- Multi-file changes
-- Anything that benefits from a plan
+- After a `brainstorm` session (design is validated, ready to formalize)
+- Building a new feature that needs structure
+- Significant refactoring or multi-file changes
 
 Does NOT apply to:
 - Quick bug fixes
 - Small tweaks
 - Single-file changes
-- Direct, specific tasks
+- Tasks already clear enough to just do
 
-## Workflow
+---
 
-### 1. Check Location
+## The Flow
 
-Before diving in, verify we're in the right place:
+```
+1. Check Location
+    ↓
+2. Write Plan (section by section, verify each)
+    ↓
+3. Create Todos (bite-sized tasks)
+    ↓
+4. Choose Execution (same session or sub-agents)
+```
+
+---
+
+## 1. Check Location
+
+Before starting:
 
 ```
 Current directory: {cwd}
 ```
 
-Ask yourself:
 - Is this the right project directory?
 - Does a project exist here, or do we need to create one?
-- Should we `cd` somewhere else first?
 
-If unclear, ask:
-> "I see we're in `{cwd}`. Is this where you want to build this, or should we set up a project directory first?"
+If unclear, ask.
 
-### 2. Brainstorm & Ask Questions
+---
 
-Use the `think-before-building` skill:
-- Understand the intention
-- Explore approaches
-- Ask meaningful questions
-- Align on scope and direction
+## 2. Write the Plan
 
-**When you have multiple questions:** Format them clearly with `?` endings, then use `execute_command` to self-invoke `/answer`:
+Create: `.pi/plans/YYYY-MM-DD-[plan-name].md`
 
-```
-[After listing your questions]
-execute_command(command="/answer", reason="Opening Q&A interface for planning questions")
-```
+### Section by Section with Verification
 
-The `/answer` tool extracts questions from your message and presents an interactive UI for the user to answer each one efficiently. Don't make the user answer inline — invoke it yourself.
+Don't dump the whole plan at once. Write each section, verify, then continue.
 
-### 3. Write the Plan
-
-Once aligned, create a plan file:
-
-```
-.pi/plans/YYYY-MM-DD-[plan-name].md
-```
-
-Example: `.pi/plans/2026-01-31-auth-system.md`
-
-### Plan Structure
+#### Section 1: Overview & Goals
 
 ```markdown
 # [Plan Name]
 
-**Date:** YYYY-MM-DD  
-**Status:** Draft | In Progress | Complete  
+**Date:** YYYY-MM-DD
+**Status:** Draft
 **Directory:** /path/to/project
 
 ## Overview
 
-Brief description of what we're building and why.
+[What we're building and why — 2-3 sentences]
 
 ## Goals
 
 - Goal 1
 - Goal 2
 - Goal 3
+```
 
+Then ask:
+> "Here's the overview and goals. Does this capture what we're building?"
+
+#### Section 2: Approach & Key Decisions
+
+```markdown
 ## Approach
 
-High-level approach and key decisions made during brainstorming.
+[High-level technical approach]
 
 ### Key Decisions
 
 - Decision 1: [choice] — because [reason]
 - Decision 2: [choice] — because [reason]
+```
 
-### Architecture / Structure
+Then ask:
+> "Here's the technical approach. Any concerns or changes?"
 
-Describe the structure, components, or architecture.
+#### Section 3: Architecture / Structure
 
+```markdown
+### Architecture
+
+[Structure, components, how pieces fit together]
+```
+
+Then ask:
+> "Here's the structure. Does this look right?"
+
+#### Section 4: Remaining Sections
+
+```markdown
 ## Dependencies
 
-- External libraries needed
+- Libraries needed
 - Tools required
-- Environment setup
 
 ## Risks & Open Questions
 
-- Risk/question 1
-- Risk/question 2
+- Risk 1
+- Open question 1
 ```
 
-### 4. Create Todos for Each Task
+Then ask:
+> "Anything to add before I create the todos?"
 
-After the plan is written, **create a todo for each implementation task** using the `todo` tool:
+### Why Sectioned?
+
+- Catches misalignment early
+- Easier to adjust one section than rewrite everything
+- User stays engaged instead of skimming a wall of text
+
+---
+
+## 3. Create Todos
+
+After the plan is verified, break it into todos.
+
+### Make Todos Bite-Sized
+
+Each todo = **one focused action** (2-5 minutes).
+
+❌ Too big: "Implement authentication system"
+
+✅ Granular:
+- "Create `src/auth/types.ts` with User and Session types"
+- "Write failing test for `validateToken` function"  
+- "Implement `validateToken` to make test pass"
+- "Add token extraction from Authorization header"
+- "Commit: 'Add JWT token validation'"
+
+### Why Granular?
+
+- Easier to track progress
+- Clearer handoff to sub-agents
+- Smaller commits, easier to review/revert
+- Each todo completable in one focused session
+
+### Creating Todos
 
 ```
-todo(action: "create", title: "Task 1: Setup project structure", tags: ["plan-name"], body: "...")
-todo(action: "create", title: "Task 2: Implement auth module", tags: ["plan-name"], body: "...")
+todo(action: "create", title: "Task 1: [description]", tags: ["plan-name"], body: "...")
 ```
 
-**Todo body should include:**
-- Reference to the plan file: `Plan: .pi/plans/2026-01-31-auth-system.md`
-- What needs to be done
-- Files to create/modify
-- Acceptance criteria
-- Any dependencies on other tasks
-
-**Example todo body:**
+**Todo body includes:**
 ```markdown
-Plan: .pi/plans/2026-01-31-auth-system.md
+Plan: .pi/plans/YYYY-MM-DD-plan-name.md
 
 ## Task
-Implement the JWT token validation middleware.
+[What needs to be done]
 
 ## Files
-- src/middleware/auth.ts (create)
-- src/types/auth.ts (create)
+- path/to/file.ts (create)
+- path/to/other.ts (modify)
 
 ## Details
-- Use jsonwebtoken library
-- Extract token from Authorization header
-- Validate against JWT_SECRET env var
-- Attach decoded user to request object
+[Specific implementation notes]
 
 ## Acceptance Criteria
-- [ ] Middleware rejects invalid tokens with 401
-- [ ] Middleware attaches user to req.user
-- [ ] Tests pass
+- [ ] Criterion 1
+- [ ] Criterion 2
 
 ## Depends On
-- Task 1 (project setup) must be complete
+- Task X must be complete first (if applicable)
 ```
 
-### 5. Confirm and Ask About Execution
+---
 
-After creating todos, ask the user:
+## 4. Choose Execution
 
-> "I've created the plan and X todos. How would you like to proceed?
+After todos are created:
+
+> "Plan and todos are ready. How would you like to execute?
 > 
-> 1. **Work through them together** — I'll work on each task, you review
-> 2. **Hand off to sub-agents** — I'll claim todos and you can spawn sub-agents to work on them
-> 3. **Just the plan for now** — We'll come back to implementation later"
+> 1. **Same session** — I'll work through each task, you review as we go
+> 2. **Sub-agents** — Spawn separate agents, each gets a specific todo with full context
+> 3. **Later** — We'll come back to implementation another time"
 
-## Working with Todos
+### Option 1: Same Session
 
-### When to Claim Todos
+Work through todos sequentially:
+1. Claim the todo
+2. Implement
+3. Verify (use `verification-before-completion`)
+4. Close the todo
+5. Move to next
 
-**Claim a todo** (`todo(action: "claim", id: "...")`) when:
-- You're about to start working on it yourself
-- User explicitly asks to hand off to sub-agents (claim it for that session)
-- You want to signal "this is in progress"
+### Option 2: Sub-Agent Handoff
 
-**Don't claim** if:
-- Just creating the plan/todos
-- User hasn't decided on execution approach yet
-- Another session might work on it
+For each todo, prepare handoff context:
 
-### During Implementation
+> "To work on this with sub-agents, start a new session with:
+> 
+> ```
+> Work on TODO-xxxx: [task title]
+> 
+> Plan: .pi/plans/YYYY-MM-DD-feature.md
+> 
+> Task: [full task description]
+> 
+> Files to read first:
+> - [relevant file 1]
+> - [relevant file 2]
+> 
+> Acceptance criteria:
+> - [criterion 1]
+> - [criterion 2]
+> 
+> When done: claim the todo, implement, test, then close it.
+> ```"
 
-When working on a task:
-1. **Claim it first** — `todo(action: "claim", id: "TODO-xxxx")`
-2. **Append progress notes** — `todo(action: "append", id: "...", body: "Started implementation...")`
-3. **Close when done** — `todo(action: "update", id: "...", status: "closed")`
+**Don't claim todos yourself** if sub-agents will pick them up — leave them open for pickup.
 
-### Listing Todos
+### Option 3: Later
 
-Use `/todos` to see the visual todo manager, or:
-- `todo(action: "list")` — see open and assigned todos
-- `todo(action: "list-all")` — include closed todos
-- `todo(action: "get", id: "...")` — see full details of a todo
+Plan and todos are saved. Come back anytime with:
+- `/todos` to see the visual manager
+- `todo(action: "list")` to see what's open
 
-## Why This Matters
+---
 
-1. **Clarity** — Forces us to think before coding
-2. **Trackable** — Todos persist and show progress
-3. **Parallel work** — Sub-agents can claim and work on different todos
-4. **Handoff ready** — Each todo has full context for independent execution
-5. **History** — Plans + todos create a project history
+## Working with Todos During Implementation
+
+### Claiming
+```
+todo(action: "claim", id: "TODO-xxxx")
+```
+Claim when you start working. Don't claim if sub-agents will pick it up.
+
+### Progress Notes
+```
+todo(action: "append", id: "TODO-xxxx", body: "Implemented the validation logic...")
+```
+
+### Closing
+```
+todo(action: "update", id: "TODO-xxxx", status: "closed")
+```
+
+### Viewing
+- `/todos` — visual todo manager
+- `todo(action: "list")` — open and assigned
+- `todo(action: "get", id: "TODO-xxxx")` — full details
+
+---
 
 ## Summary
 
 ```
-Brainstorm → Plan (.pi/plans/) → Todos (.pi/todos/) → Claim → Work → Close
+Brainstorm (validated design)
+    ↓
+Plan (section by section, verified)
+    ↓
+Todos (bite-sized tasks)
+    ↓
+Execute (same session OR sub-agents)
 ```

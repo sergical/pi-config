@@ -30,18 +30,22 @@ See [SOUL.md](SOUL.md) for the full definition.
 
 | Skill | What it does |
 |-------|--------------|
+| **brainstorm** | Structured brainstorming: investigate → requirements → approaches → validate design → plan |
+| **think-before-building** | Light gatekeeper — recognize request type, suggest brainstorm for bigger things |
+| **plan-before-coding** | Write plans section-by-section, create bite-sized todos, choose execution method |
 | **self-improve** | Learn new behaviors from natural language — "Hey pi, remember that..." |
 | **auto-memory** | Automatically remember facts about environment, projects, and gotchas |
-| **think-before-building** | Explore the codebase and brainstorm before jumping to implementation |
-| **plan-before-coding** | For larger projects: check location, brainstorm, write detailed plans, create todos |
 | **thoughtful-questions** | Ask meaningful questions, use `/answer` for multiple via `execute_command` |
 | **try-before-asking** | Try running commands instead of asking if tools are installed |
 | **reload-after-skill** | After creating a skill, auto-run `/reload` via `execute_command` |
 | **test-as-you-build** | Verify work as you go with lightweight tests |
+| **systematic-debugging** | Find root cause before fixing — no shotgun debugging |
+| **verification-before-completion** | Run verification commands before claiming "done" |
 | **commit** | Create conventional commits with proper format |
 | **github** | Interact with GitHub using `gh` CLI |
 | **web-browser** | Remote control Chrome via CDP for web interactions |
 | **tmux** | Remote control tmux sessions for interactive CLIs |
+| **frontend-design** | Design and implement distinctive frontend interfaces |
 
 ## Extensions
 
@@ -52,6 +56,8 @@ See [SOUL.md](SOUL.md) for the full definition.
 | **execute-command.ts** | Tool to self-invoke slash commands like `/answer`, `/reload` |
 | **answer.ts** | `/answer` command + `Ctrl+.` — extracts questions from last message into interactive Q&A UI |
 | **todos.ts** | `/todos` command — file-based todo management in `.pi/todos/` with locking, assignments, and TUI |
+| **review.ts** | `/review` command — code review for PRs, branches, commits, or uncommitted changes |
+| **files.ts** | `/files` command + `Ctrl+Shift+O` — browse files with git status, reveal, diff, edit |
 
 ## Setup Notes
 
@@ -69,5 +75,8 @@ Requires tmux (Linux/macOS). Works out of the box.
 ## Credits
 
 Skills and extensions from [mitsuhiko/agent-stuff](https://github.com/mitsuhiko/agent-stuff):
-- `answer.ts`, `todos.ts` (extensions)
+- `answer.ts`, `todos.ts`, `review.ts`, `files.ts` (extensions)
 - `commit`, `github`, `web-browser`, `tmux` (skills)
+
+Skill patterns inspired by [obra/superpowers](https://github.com/obra/superpowers):
+- `brainstorm`, `systematic-debugging`, `verification-before-completion`

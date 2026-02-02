@@ -1434,7 +1434,7 @@ export default function todosExtension(pi: ExtensionAPI) {
 			"Claim tasks before working on them to avoid conflicts, and close them when complete.", 
 		parameters: TodoParams,
 
-		async execute(_toolCallId, params, _onUpdate, ctx) {
+		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
 			const todosDir = getTodosDir(ctx.cwd);
 			const action: TodoAction = params.action;
 

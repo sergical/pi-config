@@ -162,7 +162,7 @@ Scope:
       }),
     }),
 
-    async execute(toolCallId, params, onUpdate, ctx, signal) {
+    async execute(toolCallId, params, signal, onUpdate, ctx) {
       const filePath = params.scope === "global" ? GLOBAL_MEMORY_PATH : getProjectMemoryPath(ctx.cwd);
       
       try {

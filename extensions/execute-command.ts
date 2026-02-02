@@ -27,7 +27,7 @@ The command/message appears in the conversation as a user message.`,
       ),
     }),
 
-    async execute(toolCallId, params, onUpdate, ctx, signal) {
+    async execute(toolCallId, params, signal, onUpdate, ctx) {
       const { command, reason } = params;
 
       // Store command to be executed after agent turn ends

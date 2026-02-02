@@ -3,6 +3,7 @@ name: scout
 description: Fast codebase reconnaissance - gathers context without making changes
 tools: read, bash, todo
 model: claude-haiku-4-5
+skill: try-before-asking
 output: context.md
 ---
 

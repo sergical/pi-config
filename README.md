@@ -89,7 +89,7 @@ ls -la ~/.pi/agent/agents/
 
 # Check skills are linked  
 ls ~/.pi/agent/skills/
-# Should show: commit, plan-before-coding, test-as-you-build, etc.
+# Should show: brainstorm, commit, github, plan-before-coding, etc.
 
 # Test the chain
 pi
@@ -108,11 +108,28 @@ After updating, re-run the symlink commands if new agents or skills were added.
 
 The **SOUL.md** defines who Pi is — identity, values, and approach. It's prepended to the system prompt on every turn.
 
-Pi is a **proactive, highly skilled software engineer** who:
-- Explores before asking
-- Thinks before building
-- Plans before coding
-- Learns continuously
+### Core Principles (always-on)
+
+These behaviors apply automatically — no skill loading needed:
+
+| Principle | What it means |
+|-----------|---------------|
+| **Proactive Mindset** | Explore codebases before asking obvious questions |
+| **Professional Objectivity** | Be direct and honest, no excessive praise |
+| **Keep It Simple** | YAGNI — minimum complexity for the task |
+| **Read Before You Edit** | Never modify code you haven't read |
+| **Try Before Asking** | Check if tools exist instead of asking |
+| **Test As You Build** | Verify work as you go, not at the end |
+| **Verify Before Done** | Run verification commands before claiming success |
+| **Investigate Before Fixing** | Find root cause, no shotgun debugging |
+| **Thoughtful Questions** | Only ask what requires human judgment |
+
+### Main Agent Identity
+
+Pi-specific behaviors (not inherited by subagents):
+- Self-invoke commands (`/answer`, `/reload`)
+- Delegate to subagents for substantial work
+- Skill triggers for explicit workflows
 
 See [SOUL.md](SOUL.md) for the full definition.
 
@@ -167,19 +184,21 @@ See [Setup](#setup) for installation and symlink instructions.
 
 ## Skills
 
+Skills are for **explicit workflows** and **specialized tools** — not always-on behaviors (those are in SOUL.md).
+
+### Workflows
+
 | Skill | What it does |
 |-------|--------------|
 | **brainstorm** | Structured brainstorming: investigate → requirements → approaches → validate design → plan |
-| **think-before-building** | Light gatekeeper — recognize request type, suggest brainstorm for bigger things |
 | **plan-before-coding** | Write plans section-by-section, create bite-sized todos, choose execution method |
 | **self-improve** | Learn new behaviors from natural language — "Hey pi, remember that..." |
-| **auto-memory** | Automatically remember facts about environment, projects, and gotchas |
-| **thoughtful-questions** | Ask meaningful questions, use `/answer` for multiple via `execute_command` |
-| **try-before-asking** | Try running commands instead of asking if tools are installed |
-| **reload-after-skill** | After creating a skill, auto-run `/reload` via `execute_command` |
-| **test-as-you-build** | Verify work as you go with lightweight tests |
-| **systematic-debugging** | Find root cause before fixing — no shotgun debugging |
-| **verification-before-completion** | Run verification commands before claiming "done" |
+| **auto-memory** | Remember facts about environment, projects, and gotchas (memory vs skill distinction) |
+
+### Specialized Tools
+
+| Skill | What it does |
+|-------|--------------|
 | **commit** | Create conventional commits with proper format |
 | **github** | Interact with GitHub using `gh` CLI |
 | **web-browser** | Remote control Chrome via CDP for web interactions |
@@ -215,7 +234,8 @@ Requires tmux (Linux/macOS). Works out of the box.
 
 Skills and extensions from [mitsuhiko/agent-stuff](https://github.com/mitsuhiko/agent-stuff):
 - `answer.ts`, `todos.ts`, `review.ts`, `files.ts` (extensions)
-- `commit`, `github`, `web-browser`, `tmux` (skills)
+- `commit`, `github`, `web-browser`, `tmux`, `frontend-design` (skills)
 
-Skill patterns inspired by [obra/superpowers](https://github.com/obra/superpowers):
-- `brainstorm`, `systematic-debugging`, `verification-before-completion`
+Skill patterns and principles inspired by [obra/superpowers](https://github.com/obra/superpowers):
+- `brainstorm` skill
+- Core principles in SOUL.md (systematic debugging, verification before completion, etc.)

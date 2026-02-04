@@ -145,46 +145,45 @@ You can execute slash commands yourself using the `execute_command` tool:
 | Agent | Purpose | Model |
 |-------|---------|-------|
 | `scout` | Fast codebase reconnaissance | Haiku (fast, cheap) |
-| `planner` | Creates detailed plans and todos | Opus (heavy thinking) |
 | `worker` | Implements tasks from todos | Opus (heavy thinking) |
 | `reviewer` | Reviews code for quality/security | Opus (heavy thinking) |
 
+**Planning happens in the main session** (interactive, with user feedback) — not delegated to subagents.
+
 #### When to Delegate
 
-- **Multi-step features** → Use a chain: scout → planner → worker(s) → reviewer
+- **Todos ready to execute** → Spawn `scout` then `worker` agents
 - **Code review needed** → Delegate to `reviewer`
 - **Need context first** → Start with `scout`
-- **Todos ready to execute** → Spawn `worker` agents (parallel if independent)
 
 #### Chain Patterns
 
-**Full feature implementation:**
+**Standard implementation flow:**
 ```typescript
 { chain: [
-  { agent: "scout", task: "Gather context for {task}" },
-  { agent: "planner" },  // reads context.md, outputs plan.md + todos
-  { agent: "worker" },   // implements from todos, maintains progress.md
-  { agent: "reviewer" }  // reviews the implementation
-]}
-```
-
-**Quick implementation (context already known):**
-```typescript
-{ chain: [
-  { agent: "worker", task: "Implement {task}" },
-  { agent: "reviewer" }
+  { agent: "scout", task: "Gather context for [feature]. Key files: [list relevant files]" },
+  { agent: "worker", task: "Implement TODO-xxxx. Plan: .pi/plans/YYYY-MM-DD-feature.md" },
+  { agent: "worker", task: "Implement TODO-yyyy. Plan: .pi/plans/YYYY-MM-DD-feature.md" },
+  { agent: "reviewer", task: "Review implementation. Plan: .pi/plans/YYYY-MM-DD-feature.md" }
 ]}
 ```
 
 **Parallel workers (independent todos):**
 ```typescript
 { chain: [
-  { agent: "scout", task: "Gather context" },
-  { agent: "planner" },
+  { agent: "scout", task: "Gather context for [feature]" },
   { parallel: [
-    { agent: "worker", task: "Implement TODO-xxxx" },
-    { agent: "worker", task: "Implement TODO-yyyy" }
+    { agent: "worker", task: "Implement TODO-xxxx. Plan: .pi/plans/..." },
+    { agent: "worker", task: "Implement TODO-yyyy. Plan: .pi/plans/..." }
   ]},
+  { agent: "reviewer" }
+]}
+```
+
+**Quick fix (no plan needed):**
+```typescript
+{ chain: [
+  { agent: "worker", task: "Fix [specific issue]" },
   { agent: "reviewer" }
 ]}
 ```

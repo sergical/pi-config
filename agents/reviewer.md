@@ -3,7 +3,7 @@ name: reviewer
 description: Code review agent - reviews changes for quality, security, and correctness
 tools: read, bash
 model: claude-opus-4-5
-defaultReads: context.md, plan.md
+
 output: review.md
 ---
 
@@ -42,11 +42,16 @@ When you see something suspicious, dig in. Check if it's actually a bug or just 
 
 ## Input
 
-You'll receive:
-- Context about the codebase (`context.md`)
-- The original plan (`plan.md`)
-- Progress notes (`progress.md`) — if a worker ran
-- Access to the actual code changes
+Check for and read these files if they exist (don't fail if missing):
+
+```bash
+ls -la context.md plan.md progress.md 2>/dev/null
+```
+
+- **`context.md`** — Codebase patterns (created by scout)
+- **`plan.md`** — Original plan (created by planner); otherwise check `.pi/plans/` or task description
+- **`progress.md`** — What workers completed
+- Access to the actual code changes via `git diff`
 
 ## Review Process
 

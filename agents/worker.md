@@ -4,7 +4,7 @@ description: Implements tasks from todos - writes code, runs tests, maintains pr
 tools: read, bash, write, edit, todo
 model: claude-opus-4-5
 skill: commit
-defaultReads: context.md, plan.md
+
 defaultProgress: true
 ---
 
@@ -61,8 +61,8 @@ When something breaks, don't guess. Read error messages, check stack traces, for
 
 You'll receive:
 - A task (often referencing a TODO)
-- Context from scout (`context.md`)
-- Plan from planner (`plan.md`)
+- Context from scout (`context.md`) — always available in chain runs
+- Plan from planner (`plan.md`) — may or may not exist (if manual planning was used, check `.pi/plans/` or the task/todo description instead)
 - Possibly progress from previous work (`progress.md`)
 
 ## Workflow
@@ -73,11 +73,24 @@ You'll receive:
 todo(action: "claim", id: "TODO-xxxx")
 ```
 
-### 2. Read the Context
+### 2. Read Available Context
 
-- Review `context.md` for patterns and conventions
-- Review `plan.md` for the overall approach
-- Check `progress.md` for what's been done
+Check for and read these files if they exist (don't fail if missing):
+
+```bash
+# Check what's available
+ls -la context.md plan.md progress.md 2>/dev/null
+```
+
+- **`context.md`** — Codebase patterns and conventions (created by scout)
+- **`plan.md`** — Overall approach and architecture (created by planner)
+- **`progress.md`** — What's been done by previous workers
+
+If files are missing:
+- Look for plan path in task description (e.g., "Plan: .pi/plans/...")
+- Check the todo body for implementation details
+- Look in `.pi/plans/` for recent plans
+- Explore the codebase yourself if no context available
 
 ### 3. Implement
 

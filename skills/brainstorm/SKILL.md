@@ -1,10 +1,9 @@
 ---
 name: brainstorm
 description: |
-  Explicitly invoke for structured brainstorming sessions. Guides a phased exploration:
-  investigate context → clarify requirements → explore approaches → validate design 
-  section-by-section → hand off to plan-before-coding. Use when building something
-  significant that needs proper thinking before implementation.
+  Structured brainstorming that always follows the full execution chain:
+  investigate → clarify → explore → validate design → write plan → create todos 
+  → create feature branch → execute with subagents. No shortcuts.
 ---
 
 # Brainstorm
@@ -12,6 +11,21 @@ description: |
 A structured brainstorming session for turning ideas into validated designs.
 
 **Announce at start:** "Starting a brainstorming session. Let me investigate first, then we'll work through this step by step."
+
+---
+
+## ⚠️ MANDATORY: No Skipping Without Permission
+
+**You MUST follow all 7 phases.** Your judgment that something is "simple" or "straightforward" is NOT sufficient to skip steps.
+
+The ONLY exception: The user explicitly says something like:
+- "Skip the plan, just implement it"
+- "Just do it quickly"
+- "No need for the full process"
+
+If the user hasn't said this, you follow the full flow. Period.
+
+**Why this matters:** You will be tempted to rationalize. You'll think "this is just a small form" or "this is obvious, no plan needed." That's exactly when the process matters most — consistency builds trust, and "small" changes have a way of growing.
 
 ---
 
@@ -26,8 +40,25 @@ Phase 3: Explore Approaches
     ↓
 Phase 4: Present & Validate Design (section by section)
     ↓
-Hand off → plan-before-coding
+Phase 5: Write Plan & Create Todos (plan-before-coding)
+    ↓
+Phase 6: Create Feature Branch
+    ↓
+Phase 7: Execute (scout → workers → reviewer)
 ```
+
+---
+
+## 🛑 STOP — Before Writing Any Code
+
+If you're about to edit or create source files, STOP and check:
+
+1. ✅ Did you complete Phase 4 (design validation)?
+2. ✅ Did you write a plan to `.pi/plans/`?
+3. ✅ Did you create todos?
+4. ✅ Did you create a feature branch?
+
+If any answer is NO and the user didn't explicitly skip → you're cutting corners. Go back.
 
 ---
 
@@ -170,48 +201,110 @@ If they suggest changes:
 
 ---
 
-## Hand Off to Execution
+## Phase 5: Write Plan & Create Todos
 
 Once the design is validated:
 
-> "Design is solid. Ready to execute?
-> 
-> I'll kick off a chain: scout gathers final context, planner creates todos, workers implement, reviewer checks quality."
+> "Design is solid. Let me write up the plan."
 
-### Default: Full Subagent Chain
+Use the `plan-before-coding` skill to:
+1. Write the plan to `.pi/plans/YYYY-MM-DD-feature.md` (section by section with verification)
+2. Create bite-sized todos with implementation details
 
-```typescript
-{ chain: [
-  { agent: "scout", task: "Gather implementation context for: [feature summary]" },
-  { agent: "planner", task: "Create plan and todos for: [feature summary]" },
-  { agent: "worker" },  // implements from todos
-  { agent: "reviewer" } // reviews the implementation
-]}
+This happens **in the main session** so you can provide feedback and iterate.
+
+---
+
+## Phase 6: Create Feature Branch
+
+Before any implementation:
+
+```bash
+git checkout -b feature/[short-descriptive-name]
 ```
 
-The clarify TUI will let you preview and adjust before execution.
+> "Created branch `feature/[name]`. Ready to execute."
 
-### Alternative: Just Planning
+---
 
-If they want to review the plan before execution:
+## Phase 7: Execute with Subagents
 
-> "Want to see the plan first before I start implementation?"
+**Use simple, sequential subagent calls** — not chains. Chains are fragile; if any step fails, everything stops. Instead, call subagents one at a time with explicit context.
 
-Then use `plan-before-coding` skill — you create the plan, they review, then spawn workers.
+### The Pattern
 
-### Alternative: Keep Discussing
+1. **Run worker for each todo** — one at a time, waiting for completion
+2. **Check results** — verify files were created/modified correctly
+3. **Handle failures** — if a worker fails, diagnose and retry or fix manually
+4. **Run reviewer last** — only after all todos are complete
 
-If they want to keep exploring:
+### Example
 
-> "Happy to keep discussing. What aspect should we dig into?"
+```typescript
+// First todo
+{ agent: "worker", task: "Implement TODO-xxxx. Plan: .pi/plans/YYYY-MM-DD-feature.md" }
 
-### Alternative: Small Enough to Just Do
+// Check result, then second todo
+{ agent: "worker", task: "Implement TODO-yyyy. Plan: .pi/plans/YYYY-MM-DD-feature.md" }
 
-If it's simple enough:
+// After all todos complete, review
+{ agent: "reviewer", task: "Review implementation. Plan: .pi/plans/YYYY-MM-DD-feature.md" }
+```
 
-> "This is small enough I can just implement it directly. Want me to go ahead?"
+### Handling Reviewer Findings
 
-**Default is the full subagent chain** — automatic scout → plan → implement → review.
+When the reviewer returns with issues, **act on the important ones**:
+
+1. **Triage the findings:**
+   - **P1 (Critical)** — Must fix: bugs, security issues, broken functionality
+   - **P2 (Important)** — Should fix: poor UX, missing error handling, accessibility
+   - **P3 (Nice to have)** — Skip unless quick: style nits, minor improvements
+
+2. **Create todos for P1s and important P2s:**
+   ```typescript
+   todo({ action: "create", title: "Fix: [issue from reviewer]", body: "..." })
+   ```
+
+3. **Kick off workers to fix them:**
+   ```typescript
+   { agent: "worker", task: "Fix TODO-xxxx (from review). Plan: .pi/plans/..." }
+   ```
+
+4. **Don't re-review minor fixes** — only run reviewer again if fixes were substantial
+
+This keeps the quality bar high without endless review cycles.
+
+### Why Not Chains?
+
+- Chains fail silently or cryptically when any step errors
+- No opportunity to inspect intermediate results
+- Can't adapt if something goes wrong
+- Manual sequential calls give you control and visibility
+
+### ⚠️ Avoid Parallel Workers in Git Repos
+
+**Do NOT use parallel workers when they share a git repository.**
+
+Even if todos are "independent" (different files), workers that commit to the same repo will conflict:
+- Worker A commits → succeeds
+- Worker B tries to commit → fails (repo state changed)
+- Worker C tries to commit → fails
+
+**The fix: Always run workers sequentially.** It's slightly slower but reliable:
+
+```typescript
+// Sequential - each completes before the next starts
+{ agent: "worker", task: "Implement TODO-xxxx. Plan: ..." }
+// verify, then:
+{ agent: "worker", task: "Implement TODO-yyyy. Plan: ..." }
+// verify, then:
+{ agent: "worker", task: "Implement TODO-zzzz. Plan: ..." }
+```
+
+**When parallel IS safe:**
+- Workers operate on completely separate git repos
+- Workers don't commit (rare — most workers should commit their work)
+- Read-only tasks (e.g., multiple scouts gathering info)
 
 ---
 
@@ -219,12 +312,12 @@ If it's simple enough:
 
 ### Read the Room
 - If they have a clear vision → validate rather than over-question
-- If they're eager to start → move faster through phases
+- If they're eager to start → move faster through phases (but still hit all phases)
 - If they're uncertain → spend more time exploring
 
 ### Stay Conversational
 - This is a dialogue, not an interrogation
-- Phases can overlap or be quick depending on complexity
+- Phases can be quick depending on complexity, but don't skip them
 - Don't be robotic about following steps
 
 ### Be Opinionated

@@ -37,7 +37,9 @@ Does NOT apply to:
     ↓
 3. Create Todos (bite-sized tasks)
     ↓
-4. Choose Execution (same session or sub-agents)
+4. Create Feature Branch
+    ↓
+5. Execute (same session or sub-agents)
 ```
 
 ---
@@ -194,40 +196,70 @@ Plan: .pi/plans/YYYY-MM-DD-plan-name.md
 
 ---
 
-## 4. Execute with Subagents
+## 4. Create Feature Branch
 
-After todos are created, **default to subagent delegation**:
+Before any implementation starts, create a fresh feature branch:
 
-> "Plan and todos are ready. I'll kick off the worker agents to implement these."
+```bash
+# Check we're on main/master and it's clean
+git status
+git branch --show-current
+
+# Create and switch to feature branch
+git checkout -b feature/[short-descriptive-name]
+```
+
+Branch naming: `feature/add-person-form`, `fix/auth-token-expiry`, `refactor/api-handlers`
+
+> "Created branch `feature/[name]`. Ready to start implementation."
+
+---
+
+## 5. Execute with Subagents (Default)
+
+After todos are created and branch is ready, **default to subagent delegation**:
+
+> "Plan and todos are ready, feature branch created. Kicking off the workers."
+
+### Always Start with Scout
+
+**Include scout as the first step** — it gathers codebase context that helps workers.
+
+Workers will use:
+1. Context from scout (`context.md` in chain directory)
+2. The todo body (with detailed implementation notes)
+3. The plan file (path included in task)
 
 ### Default: Subagent Chain
-
-Use the `subagent` tool to spawn workers:
 
 **For sequential todos (dependencies):**
 ```typescript
 { chain: [
-  { agent: "worker", task: "Implement TODO-xxxx: [title]" },
-  { agent: "worker", task: "Implement TODO-yyyy: [title]" },
-  { agent: "reviewer", task: "Review the implementation" }
+  { agent: "scout", task: "Gather context for: [feature summary]" },
+  { agent: "worker", task: "Implement TODO-xxxx: [title]. Plan: .pi/plans/YYYY-MM-DD-feature.md" },
+  { agent: "worker", task: "Implement TODO-yyyy: [title]. Plan: .pi/plans/YYYY-MM-DD-feature.md" },
+  { agent: "reviewer", task: "Review the implementation. Plan: .pi/plans/YYYY-MM-DD-feature.md" }
 ]}
 ```
 
 **For independent todos (parallel):**
 ```typescript
 { chain: [
+  { agent: "scout", task: "Gather context for: [feature summary]" },
   { parallel: [
-    { agent: "worker", task: "Implement TODO-xxxx: [title]" },
-    { agent: "worker", task: "Implement TODO-yyyy: [title]" }
+    { agent: "worker", task: "Implement TODO-xxxx: [title]. Plan: .pi/plans/YYYY-MM-DD-feature.md" },
+    { agent: "worker", task: "Implement TODO-yyyy: [title]. Plan: .pi/plans/YYYY-MM-DD-feature.md" }
   ]},
-  { agent: "reviewer", task: "Review all changes" }
+  { agent: "reviewer", task: "Review all changes. Plan: .pi/plans/YYYY-MM-DD-feature.md" }
 ]}
 ```
 
-The chain directory (`{chain_dir}`) automatically shares:
-- `context.md` — Codebase context (if scout ran)
-- `plan.md` — The plan you wrote
-- `progress.md` — Updated by workers
+### What Gets Shared in Chain Directory
+
+- `context.md` — Created by scout, available to all subsequent agents
+- `progress.md` — Updated by workers as they complete tasks
+
+The plan lives at `.pi/plans/...` — include the path in each worker/reviewer task.
 
 ### Alternative: Same Session
 

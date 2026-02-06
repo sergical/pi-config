@@ -355,9 +355,16 @@ Plan: .pi/plans/YYYY-MM-DD-plan-name.md
 // Check result, then second todo
 { agent: "worker", task: "Implement TODO-yyyy. Plan: .pi/plans/YYYY-MM-DD-feature.md" }
 
-// After all todos complete, review
-{ agent: "reviewer", task: "Review implementation. Plan: .pi/plans/YYYY-MM-DD-feature.md" }
+// After all todos complete, review the worker commits
+// Note the commit SHA before workers start, then pass the range to the reviewer
+{ agent: "reviewer", task: "Review the commits since <sha-before-workers>. Plan: .pi/plans/YYYY-MM-DD-feature.md" }
 ```
+
+**Important:** Before dispatching workers, capture the current HEAD so you can tell the reviewer exactly what to review:
+```bash
+git rev-parse HEAD  # Save this — pass it to the reviewer as the "before" point
+```
+Then tell the reviewer: `"Review commits since <that-sha>."`
 
 ### Handling Reviewer Findings
 
@@ -379,6 +386,17 @@ When the reviewer returns with issues, **act on the important ones**:
    ```
 
 4. **Don't re-review minor fixes** — only run reviewer again if fixes were substantial
+
+### ⚠️ MANDATORY: Always Run Reviewer
+
+**After all workers complete, you MUST run the reviewer.** No exceptions. Don't get distracted by worker output or results — the workflow is not complete until the reviewer has run.
+
+```typescript
+// This is NOT optional. Always end with:
+{ agent: "reviewer", task: "Review commits since <sha-before-workers>. Plan: .pi/plans/YYYY-MM-DD-feature.md" }
+```
+
+Pass the commit SHA you captured before workers started so the reviewer knows exactly which commits to `git diff`.
 
 ### Why Not Chains?
 
@@ -415,6 +433,15 @@ Then work through todos sequentially:
 3. Verify
 4. Close the todo
 5. Move to next
+
+### 🛑 STOP — Before Reporting Completion
+
+Check:
+1. ✅ All worker todos are closed?
+2. ✅ **Reviewer has run?** ← If no, run it now
+3. ✅ Reviewer findings triaged and addressed?
+
+**Do NOT tell the user the work is done until all three are true.**
 
 ---
 

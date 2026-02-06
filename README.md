@@ -11,6 +11,7 @@ To replicate my exact setup:
 pi install npm:pi-subagents
 pi install npm:pi-interactive-shell
 pi install npm:@juanibiapina/pi-gob
+pi install npm:pi-notify
 
 # 2. Install this config
 pi install git:github.com/HazAT/pi-config
@@ -33,6 +34,7 @@ This config depends on several pi packages that provide core functionality:
 | **npm:pi-subagents** | `subagent` tool for delegating tasks to specialized agents (scout, worker, reviewer) with chains and parallel execution |
 | **npm:pi-interactive-shell** | `interactive_shell` tool for running AI coding agents (pi, claude, gemini) in TUI overlays with hands-free monitoring |
 | **npm:@juanibiapina/pi-gob** | Integration with [gob](https://github.com/juanibiapina/gob) for background process management — status widget and job control |
+| **npm:pi-notify** | Desktop notifications when the agent finishes — supports Ghostty, iTerm2, WezTerm, Kitty, and Windows Terminal via OSC 777/99 |
 
 ### Install All Packages
 
@@ -40,6 +42,7 @@ This config depends on several pi packages that provide core functionality:
 pi install npm:pi-subagents
 pi install npm:pi-interactive-shell
 pi install npm:@juanibiapina/pi-gob
+pi install npm:pi-notify
 pi install git:github.com/HazAT/pi-config
 ```
 
@@ -98,6 +101,7 @@ cd ~/Projects/pi-config
 pi install npm:pi-subagents
 pi install npm:pi-interactive-shell
 pi install npm:@juanibiapina/pi-gob
+pi install npm:pi-notify
 
 # 3. Add to ~/.pi/agent/settings.json under "packages":
 #    "/Users/YOUR_USERNAME/Projects/pi-config"
@@ -309,3 +313,4 @@ Required packages:
 - [pi-subagents](https://github.com/nicobailon/pi-subagents) by Nico Bailon
 - [pi-interactive-shell](https://github.com/badlogic/pi-interactive-shell) 
 - [@juanibiapina/pi-gob](https://github.com/juanibiapina/pi-gob) by Juan Ibiapina
+- [pi-notify](https://github.com/ferologics/pi-notify) by ferologics

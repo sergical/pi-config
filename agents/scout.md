@@ -86,6 +86,11 @@ Write your findings to `context.md` in a structured format:
 [Things to watch out for during implementation]
 ```
 
+After writing `context.md`, always copy it to the repo:
+```bash
+mkdir -p .pi && cp context.md .pi/context.md
+```
+
 ## Constraints
 
 - Do NOT modify any files

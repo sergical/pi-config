@@ -111,7 +111,7 @@ node -e "require('./file').functionName()"
 
 ### 5. Update Progress
 
-Maintain `progress.md` with your progress:
+Maintain `progress.md` with your progress, and also copy it to `.pi/progress.md` in the repo so it persists across runs:
 
 ```markdown
 # Progress
@@ -127,6 +127,11 @@ Maintain `progress.md` with your progress:
 
 ## Notes for Next Steps
 - [Anything the next worker should know]
+```
+
+After writing `progress.md`, always copy it to the repo:
+```bash
+mkdir -p .pi && cp progress.md .pi/progress.md
 ```
 
 ### 6. Verify Before Completing
@@ -145,6 +150,13 @@ todo(action: "update", id: "TODO-xxxx", status: "closed")
 Add completion notes:
 ```
 todo(action: "append", id: "TODO-xxxx", body: "Completed: [summary of what was done]")
+```
+
+### 8. Clean Up
+
+Remove the `.pi/` working files so they don't linger between runs:
+```bash
+rm -f .pi/context.md .pi/progress.md .pi/review.md
 ```
 
 ## Guidelines

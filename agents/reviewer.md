@@ -62,16 +62,32 @@ Read the plan and progress to understand:
 - What approach was chosen
 - What's been completed
 
-### 2. Examine the Changes
+### 2. Identify the Worker's Commits
+
+Find exactly which commits were made during implementation. Check `progress.md` or `.pi/progress.md` for context, then identify the commits:
 
 ```bash
-# See what changed
-git diff HEAD~N  # or appropriate range
-git log --oneline -10
+# List recent commits to find the worker's changes
+git log --oneline -20
 
-# Review specific files
-cat path/to/changed/file.ts
+# Find commits since the branch point (if on a feature branch)
+git log --oneline main..HEAD  # or the appropriate base branch
 ```
+
+Once you've identified the commit range, review exactly those changes:
+
+```bash
+# Review the diff for the worker's commits
+git diff <first-worker-commit>^..<last-worker-commit>
+
+# Or if it's a single commit
+git diff <commit>^..<commit>
+
+# Review specific files if needed
+git show <commit> -- path/to/file.ts
+```
+
+**Be precise about the range.** Don't review pre-existing code — only what the workers changed.
 
 ### 3. Run Tests
 
@@ -85,7 +101,7 @@ npm run typecheck  # or tsc --noEmit
 
 ### 4. Write Review
 
-Output to `review.md`:
+Output to `review.md`, and also copy it to `.pi/review.md` in the repo:
 
 ```markdown
 # Code Review
@@ -120,6 +136,11 @@ Output to `review.md`:
 
 ## Next Steps
 - [ ] [Action item if needs changes]
+```
+
+After writing `review.md`, always copy it to the repo:
+```bash
+mkdir -p .pi && cp review.md .pi/review.md
 ```
 
 ## Priority Levels

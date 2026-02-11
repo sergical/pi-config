@@ -9,8 +9,6 @@ To replicate my exact setup:
 ```bash
 # 1. Install required packages
 pi install npm:pi-subagents
-pi install npm:pi-interactive-shell
-pi install npm:@juanibiapina/pi-gob
 pi install npm:pi-notify
 
 # 2. Install this config
@@ -32,30 +30,14 @@ This config depends on several pi packages that provide core functionality:
 | Package | What it provides |
 |---------|------------------|
 | **npm:pi-subagents** | `subagent` tool for delegating tasks to specialized agents (scout, worker, reviewer) with chains and parallel execution |
-| **npm:pi-interactive-shell** | `interactive_shell` tool for running AI coding agents (pi, claude, gemini) in TUI overlays with hands-free monitoring |
-| **npm:@juanibiapina/pi-gob** | Integration with [gob](https://github.com/juanibiapina/gob) for background process management — status widget and job control |
 | **npm:pi-notify** | Desktop notifications when the agent finishes — supports Ghostty, iTerm2, WezTerm, Kitty, and Windows Terminal via OSC 777/99 |
 
 ### Install All Packages
 
 ```bash
 pi install npm:pi-subagents
-pi install npm:pi-interactive-shell
-pi install npm:@juanibiapina/pi-gob
 pi install npm:pi-notify
 pi install git:github.com/HazAT/pi-config
-```
-
-### gob Setup
-
-The `@juanibiapina/pi-gob` package requires [gob](https://github.com/juanibiapina/gob) to be installed:
-
-```bash
-# macOS
-brew install juanibiapina/tap/gob
-
-# Or build from source
-cargo install --git https://github.com/juanibiapina/gob
 ```
 
 ## Setup Options
@@ -99,8 +81,6 @@ cd ~/Projects/pi-config
 
 # 2. Install required packages
 pi install npm:pi-subagents
-pi install npm:pi-interactive-shell
-pi install npm:@juanibiapina/pi-gob
 pi install npm:pi-notify
 
 # 3. Add to ~/.pi/agent/settings.json under "packages":
@@ -185,7 +165,7 @@ These behaviors apply automatically — no skill loading needed:
 | **Test As You Build** | Verify work as you go, not at the end |
 | **Verify Before Done** | Run verification commands before claiming success |
 | **Investigate Before Fixing** | Find root cause, no shotgun debugging |
-| **Process Management** | Use `gob` for background processes (servers, builds) |
+| **Process Management** | Use `tmux` for background processes (servers, builds) via the tmux skill |
 | **Thoughtful Questions** | Only ask what requires human judgment |
 
 #### Main Agent Identity
@@ -204,8 +184,8 @@ Specialized subagents for delegated workflows. Provided by this config, powered 
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | **scout** | Haiku | Fast codebase reconnaissance — gathers context without changes |
-| **worker** | Opus | Implements tasks from todos, commits changes to the feature branch, and closes the todo |
-| **reviewer** | Opus | Reviews code for quality, security, and correctness |
+| **worker** | Opus 4.6 (minimal thinking) | Implements tasks from todos, commits changes to the feature branch, and closes the todo |
+| **reviewer** | Opus 4.6 (medium thinking) | Reviews code for quality, security, and correctness |
 
 #### Workflow Patterns
 
@@ -251,6 +231,7 @@ Skills provide specialized instructions for specific tasks. They're loaded on-de
 | **code-simplifier** | Simplifying or cleaning up code | Refines code for clarity, consistency, and maintainability while preserving functionality |
 | **commit** | Making git commits | Create conventional commits with proper format |
 | **github** | Working with GitHub | Interact with GitHub using `gh` CLI — issues, PRs, CI runs |
+| **tmux** | Running background processes, servers, debuggers, REPLs | Manage tmux sessions with private sockets — start, monitor, and clean up processes |
 
 ### Extensions (from this config)
 
@@ -263,6 +244,7 @@ Extensions add functionality to pi — commands, tools, shortcuts, and hooks.
 | **answer.ts** | `/answer` command + `Ctrl+.` — extracts questions from last message into interactive Q&A UI |
 | **todos.ts** | `/todos` command + `todo` tool — file-based todo management in `.pi/todos/` with locking, assignments, and TUI |
 | **review.ts** | `/review` command — code review for PRs, branches, commits, or uncommitted changes |
+| **tmux-status.ts** | Shows running pi tmux sessions in the footer status bar with `ptmux` attach commands |
 | **context-filter** | `.gitignore`-style control over which context files and skills appear in the system prompt |
 
 #### Context Filter
@@ -318,7 +300,7 @@ These tools come from the required npm packages:
 |------|---------|-------------|
 | `subagent` | pi-subagents | Delegate tasks to specialized agents with chains and parallel execution |
 | `subagent_status` | pi-subagents | Check status of async subagent runs |
-| `interactive_shell` | pi-interactive-shell | Run AI coding agents in TUI overlays with hands-free monitoring |
+
 
 ---
 
@@ -351,6 +333,4 @@ Skill patterns and principles inspired by [obra/superpowers](https://github.com/
 
 Required packages:
 - [pi-subagents](https://github.com/nicobailon/pi-subagents) by Nico Bailon
-- [pi-interactive-shell](https://github.com/badlogic/pi-interactive-shell) 
-- [@juanibiapina/pi-gob](https://github.com/juanibiapina/pi-gob) by Juan Ibiapina
 - [pi-notify](https://github.com/ferologics/pi-notify) by ferologics

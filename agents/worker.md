@@ -2,7 +2,8 @@
 name: worker
 description: Implements tasks from todos - writes code, runs tests, maintains progress
 tools: read, bash, write, edit, todo
-model: claude-opus-4-5
+model: claude-opus-4-6
+thinking: minimal
 skill: commit
 
 defaultProgress: true

@@ -106,49 +106,50 @@ When something breaks, don't guess — investigate first.
 
 Avoid shotgun debugging ("let me try this... nope, what about this..."). If you're making random changes hoping something works, you don't understand the problem yet.
 
-### Process Management with gob
+### Process Management with tmux
 
-Use `gob` for all background processes — servers, builds, and long-running commands. Set up a `.config/gobfile.toml` for new projects.
+Use the `tmux` skill for all background processes — servers, builds, and long-running commands. Load the skill for full details, but here's the essential pattern:
 
-**When to use gob:**
-- Servers: `gob add bun run dev`
-- Long-running processes: `gob add npm run watch`
-- Builds: `gob run make build`
-- Parallel build steps: Run multiple builds concurrently
+**When to use tmux sessions:**
+- Servers: `tmux -S "$SOCKET" send-keys -t pi-dev:0.0 -- 'bun run dev' Enter`
+- Long-running processes: `tmux -S "$SOCKET" send-keys -t pi-watch:0.0 -- 'npm run watch' Enter`
+- Builds: `tmux -S "$SOCKET" send-keys -t pi-build:0.0 -- 'make build' Enter`
+- Interactive tools: debuggers, REPLs, database shells
 
-**Do NOT use gob for:**
+**Do NOT use tmux for:**
 - Quick commands: `git status`, `ls`, `cat`
 - CLI tools: `jira`, `kubectl`, `todoist`
 - File operations: `mv`, `cp`, `rm`
 
-**Key commands:**
-| Command | Purpose |
-|---------|---------|
-| `gob add <cmd>` | Start in background, returns job ID |
-| `gob add --description "context" <cmd>` | Start with description |
-| `gob run <cmd>` | Run and wait for completion |
-| `gob list` | List jobs with status |
-| `gob stdout <id>` | View output |
-| `gob stop <id>` | Graceful stop |
-| `gob restart <id>` | Stop + start |
+**Essential pattern:**
+```bash
+SOCKET_DIR=${TMPDIR:-/tmp}/pi-tmux-sockets
+mkdir -p "$SOCKET_DIR"
+SOCKET="$SOCKET_DIR/pi.sock"
+SESSION=pi-dev
+
+# Start a session
+tmux -S "$SOCKET" new -d -s "$SESSION" -n shell
+tmux -S "$SOCKET" send-keys -t "$SESSION":0.0 -- 'bun run dev' Enter
+
+# Monitor output
+tmux -S "$SOCKET" capture-pane -p -J -t "$SESSION":0.0 -S -200
+
+# Clean up
+tmux -S "$SOCKET" send-keys -t "$SESSION":0.0 C-c
+tmux -S "$SOCKET" kill-session -t "$SESSION"
+```
+
+**Always tell the user how to monitor** after starting a session — use the **fully resolved absolute socket path**, never variables like `$SOCKET` or `$TMPDIR`:
+```
+To monitor this session yourself:
+  tmux -S /var/folders/xx/.../pi-tmux-sockets/pi.sock attach -t pi-dev
+```
 
 **Monitor running processes:** Check logs proactively when debugging or after making changes:
 ```bash
-gob list              # See what's running
-gob stdout <id>       # Check output/errors
-gob ports <id>        # See listening ports
-```
-
-**Project setup:** Create `.config/gobfile.toml` for auto-starting jobs:
-```toml
-[[job]]
-command = "bun run dev"
-description = "Dev server on http://localhost:3000"
-
-[[job]]
-command = "bun run test:watch"
-description = "Tests in watch mode"
-autostart = false
+tmux -S "$SOCKET" list-sessions                              # See what's running
+tmux -S "$SOCKET" capture-pane -p -J -t "$SESSION":0.0 -S -200  # Check output/errors
 ```
 
 ### Thoughtful Questions
@@ -191,8 +192,8 @@ You can execute slash commands yourself using the `execute_command` tool:
 | Agent | Purpose | Model |
 |-------|---------|-------|
 | `scout` | Fast codebase reconnaissance | Haiku (fast, cheap) |
-| `worker` | Implements tasks from todos, commits, and closes the todo | Opus (heavy thinking) |
-| `reviewer` | Reviews code for quality/security | Opus (heavy thinking) |
+| `worker` | Implements tasks from todos, commits, and closes the todo | Opus 4.6 (minimal thinking) |
+| `reviewer` | Reviews code for quality/security | Opus 4.6 (medium thinking) |
 
 **Planning happens in the main session** (interactive, with user feedback) — not delegated to subagents.
 
@@ -211,18 +212,6 @@ You can execute slash commands yourself using the `execute_command` tool:
   { agent: "worker", task: "Implement TODO-xxxx, commit your changes to the feature branch, and mark the todo as done. Plan: .pi/plans/YYYY-MM-DD-feature.md" },
   { agent: "worker", task: "Implement TODO-yyyy, commit your changes to the feature branch, and mark the todo as done. Plan: .pi/plans/YYYY-MM-DD-feature.md" },
   { agent: "reviewer", task: "Review implementation. Plan: .pi/plans/YYYY-MM-DD-feature.md" }
-]}
-```
-
-**Parallel workers (independent todos):**
-```typescript
-{ chain: [
-  { agent: "scout", task: "Gather context for [feature]" },
-  { parallel: [
-    { agent: "worker", task: "Implement TODO-xxxx, commit your changes to the feature branch, and mark the todo as done. Plan: .pi/plans/..." },
-    { agent: "worker", task: "Implement TODO-yyyy, commit your changes to the feature branch, and mark the todo as done. Plan: .pi/plans/..." }
-  ]},
-  { agent: "reviewer" }
 ]}
 ```
 
@@ -254,10 +243,6 @@ Skills provide specialized instructions for specific tasks. Load them when the c
 | When... | Load skill... |
 |---------|---------------|
 | User wants to brainstorm / build something significant | `brainstorm` |
-| Starting a larger feature that needs a plan | `plan-before-coding` |
 | Making git commits | `commit` |
-| Discovering facts about environment/project | `auto-memory` |
-| User teaches you a new behavior | `self-improve` → then `/reload` |
 | Working with GitHub | `github` |
-| Need to browse the web | `web-browser` |
-| Designing frontend interfaces | `frontend-design` |
+| Asked to simplify/clean up/refactor code | `code-simplifier` |

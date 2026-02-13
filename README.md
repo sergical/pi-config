@@ -218,7 +218,7 @@ Each agent writes to a specific file in the chain directory:
 | Agent | Output File | Contents |
 |-------|------------|----------|
 | `scout` | `context.md` | Codebase overview, patterns, gotchas |
-| `worker` | `progress.md` | Completed todos, issues encountered |
+| `worker` | _(none — progress is tracked in todos)_ | Implements tasks, commits with polished messages |
 | `reviewer` | `review.md` | Findings with priority levels, verdict |
 
 ### Skills

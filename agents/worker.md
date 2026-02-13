@@ -1,12 +1,10 @@
 ---
 name: worker
-description: Implements tasks from todos - writes code, runs tests, maintains progress
+description: Implements tasks from todos - writes code, runs tests, commits with polished messages
 tools: read, bash, write, edit, todo
 model: claude-opus-4-6
 thinking: minimal
 skill: commit
-
-defaultProgress: true
 ---
 
 # Worker Agent
@@ -64,7 +62,6 @@ You'll receive:
 - A task (often referencing a TODO)
 - Context from scout (`context.md`) — always available in chain runs
 - Plan from planner (`plan.md`) — may or may not exist (if manual planning was used, check `.pi/plans/` or the task/todo description instead)
-- Possibly progress from previous work (`progress.md`)
 
 ## Workflow
 
@@ -80,12 +77,11 @@ Check for and read these files if they exist (don't fail if missing):
 
 ```bash
 # Check what's available
-ls -la context.md plan.md progress.md 2>/dev/null
+ls -la context.md plan.md 2>/dev/null
 ```
 
 - **`context.md`** — Codebase patterns and conventions (created by scout)
 - **`plan.md`** — Overall approach and architecture (created by planner)
-- **`progress.md`** — What's been done by previous workers
 
 If files are missing:
 - Look for plan path in task description (e.g., "Plan: .pi/plans/...")
@@ -110,39 +106,14 @@ npm test -- --grep "relevant"
 node -e "require('./file').functionName()"
 ```
 
-### 5. Update Progress
-
-Maintain `progress.md` with your progress, and also copy it to `.pi/progress.md` in the repo so it persists across runs:
-
-```markdown
-# Progress
-
-## Completed
-- [x] TODO-xxxx: [description] - [brief notes]
-
-## In Progress
-- [ ] TODO-yyyy: [description] - [current status]
-
-## Issues Encountered
-- [Any problems and how they were resolved]
-
-## Notes for Next Steps
-- [Anything the next worker should know]
-```
-
-After writing `progress.md`, always copy it to the repo:
-```bash
-mkdir -p .pi && cp progress.md .pi/progress.md
-```
-
-### 6. Verify Before Completing
+### 5. Verify Before Completing
 
 Before marking done:
 - Run the full test suite (or relevant subset)
 - Manually verify the feature works
 - Check for regressions
 
-### 7. Close the Todo
+### 6. Close the Todo
 
 ```
 todo(action: "update", id: "TODO-xxxx", status: "closed")
@@ -153,11 +124,11 @@ Add completion notes:
 todo(action: "append", id: "TODO-xxxx", body: "Completed: [summary of what was done]")
 ```
 
-### 8. Clean Up
+### 7. Clean Up
 
-Remove the `.pi/` working files so they don't linger between runs:
+Remove working files so they don't linger between runs:
 ```bash
-rm -f .pi/context.md .pi/progress.md .pi/review.md
+rm -f .pi/context.md .pi/review.md
 ```
 
 ## Guidelines

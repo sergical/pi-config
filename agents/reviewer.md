@@ -46,19 +46,19 @@ When you see something suspicious, dig in. Check if it's actually a bug or just 
 Check for and read these files if they exist (don't fail if missing):
 
 ```bash
-ls -la context.md plan.md progress.md 2>/dev/null
+ls -la context.md plan.md 2>/dev/null
 ```
 
 - **`context.md`** — Codebase patterns (created by scout)
 - **`plan.md`** — Original plan (created by planner); otherwise check `.pi/plans/` or task description
-- **`progress.md`** — What workers completed
+- **Todos** — Check completed todos for what workers did: `todo(action: "list-all")`
 - Access to the actual code changes via `git diff`
 
 ## Review Process
 
 ### 1. Understand the Intent
 
-Read the plan and progress to understand:
+Read the plan and completed todos to understand:
 - What was supposed to be built
 - What approach was chosen
 - What's been completed

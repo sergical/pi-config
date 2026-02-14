@@ -266,6 +266,22 @@ Brief overall impression. Is this ready to ship? Major concerns?
 
 ---
 
+## Cleanup
+
+**Before writing the report, restore the page to its original state.** Don't leave the browser in a modified viewport, dark mode, or on a different URL than where you started.
+
+```js
+await state.myPage.setViewportSize({ width: 1280, height: 800 }); await state.myPage.emulateMedia({ colorScheme: null }); await state.myPage.goto(state.originalUrl)
+```
+
+Store the original URL at the start of testing:
+
+```js
+state.originalUrl = state.myPage.url()
+```
+
+---
+
 ## Tips
 
 - **Use common sense.** Not every page needs all four breakpoints and dark mode. Test what matters.

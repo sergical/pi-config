@@ -1,12 +1,30 @@
 ---
 name: tmux
-description: "Remote control tmux sessions for interactive CLIs (python, gdb, etc.) by sending keystrokes and scraping pane output."
+description: "Use tmux for any interactive or long-running command. Start it in tmux, check output periodically, interact with prompts — faster feedback than blocking on bash."
 license: Vibecoded
 ---
 
 # tmux Skill
 
 Use tmux as a programmable terminal multiplexer for interactive work. Works on Linux and macOS with stock tmux; avoid custom config by using a private socket.
+
+## When to Reach for tmux
+
+**Default to tmux for any command that isn't a quick one-shot.** If you know the command will:
+- Produce streaming output you need to read and react to
+- Ask for input, confirmations, or selections
+- Take more than a few seconds and you want to check progress
+- Run interactively (installers, wizards, watch-mode tools, test runners)
+
+...then start it in tmux instead of blocking on bash. The workflow is:
+1. **Start** the command in a tmux session
+2. **Check** output with `capture-pane` periodically
+3. **Interact** — send input, respond to prompts, ctrl-c if needed
+4. **Clean up** the session when done
+
+This is faster because you see partial output immediately, react to errors early, and never get stuck waiting for a blocking command to finish. You stay in control.
+
+**Don't use tmux for:** quick one-shot commands (`git status`, `ls`, `cat`, `grep`), simple non-interactive CLIs, or file operations.
 
 ## Quickstart (isolated socket)
 

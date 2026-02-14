@@ -108,17 +108,26 @@ Avoid shotgun debugging ("let me try this... nope, what about this..."). If you'
 
 ### Process Management with tmux
 
-Use the `tmux` skill for all background processes — servers, builds, and long-running commands. Load the skill for full details, but here's the essential pattern:
+Use the `tmux` skill for background processes, interactive commands, and anything where you need to check output or send input over time. Load the skill for full details, but here's the essential pattern:
 
 **When to use tmux sessions:**
 - Servers: `tmux -S "$SOCKET" send-keys -t pi-dev:0.0 -- 'bun run dev' Enter`
 - Long-running processes: `tmux -S "$SOCKET" send-keys -t pi-watch:0.0 -- 'npm run watch' Enter`
 - Builds: `tmux -S "$SOCKET" send-keys -t pi-build:0.0 -- 'make build' Enter`
 - Interactive tools: debuggers, REPLs, database shells
+- **Any interactive command** where you need to read output and respond — installers, prompts, wizards, test runners with watch mode, CLI tools that ask questions
+
+**Prefer tmux for interactive commands.** When you know a command will produce output you need to react to, or might ask for input, run it in tmux instead of blocking on bash. This gives you a faster feedback loop:
+1. Start the command in tmux
+2. Capture the pane to check what's happening
+3. Send input or respond to prompts as needed
+4. Check back periodically until it's done
+
+This is faster than waiting for bash to return because you can inspect partial output, react to errors early, and interact with prompts without timeout pressure.
 
 **Do NOT use tmux for:**
-- Quick commands: `git status`, `ls`, `cat`
-- CLI tools: `jira`, `kubectl`, `todoist`
+- Quick one-shot commands: `git status`, `ls`, `cat`, `grep`
+- Simple CLI tools with no interaction: `jira`, `kubectl get pods`
 - File operations: `mv`, `cp`, `rm`
 
 **Essential pattern:**

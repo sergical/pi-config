@@ -215,11 +215,9 @@ Once the design is validated:
 
 Create: `.pi/plans/YYYY-MM-DD-[plan-name].md`
 
-### Section by Section with Verification
+### Write the Full Plan
 
-Don't dump the whole plan at once. Write each section, verify, then continue.
-
-#### Section 1: Overview & Goals
+By this point, the design has been explored, validated, and refined through Phases 2–4. **Don't re-ask for approval on every section** — just write the complete plan and present it.
 
 ```markdown
 # [Plan Name]
@@ -237,14 +235,7 @@ Don't dump the whole plan at once. Write each section, verify, then continue.
 - Goal 1
 - Goal 2
 - Goal 3
-```
 
-Then ask:
-> "Here's the overview and goals. Does this capture what we're building?"
-
-#### Section 2: Approach & Key Decisions
-
-```markdown
 ## Approach
 
 [High-level technical approach]
@@ -253,25 +244,11 @@ Then ask:
 
 - Decision 1: [choice] — because [reason]
 - Decision 2: [choice] — because [reason]
-```
 
-Then ask:
-> "Here's the technical approach. Any concerns or changes?"
-
-#### Section 3: Architecture / Structure
-
-```markdown
 ### Architecture
 
 [Structure, components, how pieces fit together]
-```
 
-Then ask:
-> "Here's the structure. Does this look right?"
-
-#### Section 4: Remaining Sections
-
-```markdown
 ## Dependencies
 
 - Libraries needed
@@ -283,8 +260,8 @@ Then ask:
 - Open question 1
 ```
 
-Then ask:
-> "Anything to add before I create the todos?"
+After writing, briefly confirm:
+> "Plan is written. Ready to create the todos, or anything you want to adjust?"
 
 ---
 
@@ -389,9 +366,10 @@ Keep the name short and descriptive (e.g., `feat/jwt-auth`, `fix/null-response`,
 When the reviewer returns with issues, **act on the important ones**:
 
 1. **Triage the findings:**
-   - **P1 (Critical)** — Must fix: bugs, security issues, broken functionality
-   - **P2 (Important)** — Should fix: poor UX, missing error handling, accessibility
-   - **P3 (Nice to have)** — Skip unless quick: style nits, minor improvements
+   - **P0 (Drop everything)** — Must fix now: real bugs, security holes, data loss — provable, not hypothetical
+   - **P1 (Foot gun)** — Should fix: genuine traps that will bite someone, real maintenance dangers
+   - **P2 (Worth mentioning)** — Fix if quick, otherwise note for later
+   - **P3 (Almost irrelevant)** — Skip. Don't waste time on these.
 
 2. **Create todos for P1s and important P2s:**
    ```typescript
@@ -442,9 +420,10 @@ Once prerequisites are confirmed:
 
 When the visual tester returns a report, triage findings the same way as reviewer findings:
 
-- **P0/P1 (Critical/Major)** — Must fix: broken layouts, unreadable text, non-functional interactions
-- **P2 (Moderate)** — Should fix: spacing issues, minor alignment problems, inconsistent states
-- **P3 (Minor)** — Skip unless quick: pixel-level nits, subtle color variations
+- **P0 (Drop everything)** — Must fix: broken layouts, unreadable text, non-functional interactions
+- **P1 (Foot gun)** — Should fix: real UX problems that will confuse users
+- **P2 (Worth mentioning)** — Fix if quick: spacing issues, minor alignment
+- **P3 (Almost irrelevant)** — Skip: pixel-level nits, subtle color variations
 
 Create todos for P0/P1 issues, run workers to fix them, then proceed to the reviewer.
 

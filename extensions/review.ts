@@ -164,13 +164,19 @@ Flag issues that:
 6. Apply system-level thinking; flag changes that increase operational risk or on-call wakeups.
 7. Ensure that errors are always checked against codes or stable identifiers, never error messages.
 
-## Priority levels
+## Priority levels — Be ruthlessly pragmatic
+
+The bar for flagging something is HIGH. Ask yourself: "Will this actually cause a real problem in practice?" If the answer is "well, theoretically..." — don't flag it.
 
 Tag each finding with a priority level in the title:
-- [P0] - Drop everything to fix. Blocking release/operations. Only for universal issues.
-- [P1] - Urgent. Should be addressed in the next cycle.
-- [P2] - Normal. To be fixed eventually.
-- [P3] - Low. Nice to have.
+- [P0] - Drop everything. Will break in production, lose data, or create a security hole. Must be provable with a concrete scenario — not hypothetical.
+- [P1] - Genuine foot gun. Someone WILL trip over this and waste hours, or it creates a real maintenance trap. Not "could theoretically be a problem."
+- [P2] - Worth mentioning. A real improvement, but the code works fine without it. Not urgent.
+- [P3] - Almost irrelevant. Barely worth the ink.
+
+Do NOT flag: naming preferences (unless actively misleading), hypothetical edge cases you can't prove will happen, style differences, "best practice" violations where the code works fine, or speculative future scaling concerns.
+
+DO flag: real bugs, security issues with concrete exploit paths, logic errors, missing error handling where errors WILL occur. For P0/P1, always show the concrete scenario.
 
 ## Output format
 
@@ -178,9 +184,9 @@ Provide your findings in a clear, structured format:
 1. List each finding with its priority tag, file location, and explanation.
 2. Keep line references as short as possible (avoid ranges over 5-10 lines).
 3. At the end, provide an overall verdict: "correct" (no blocking issues) or "needs attention" (has blocking issues).
-4. Ignore trivial style issues unless they obscure meaning or violate documented standards.
+4. If the code works and is readable, a short review with few findings is the RIGHT answer. Don't manufacture findings.
 
-Output all findings the author would fix if they knew about them. If there are no qualifying findings, explicitly state the code looks good. Don't stop at the first finding - list every qualifying issue.`;
+Output findings the author would genuinely benefit from knowing. If there are no qualifying findings, explicitly state the code looks good.`;
 
 async function loadProjectReviewGuidelines(cwd: string): Promise<string | null> {
 	let currentDir = path.resolve(cwd);

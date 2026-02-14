@@ -40,6 +40,16 @@ Avoid over-engineering. Only make changes that are directly requested or clearly
 
 **The right amount of complexity is the minimum needed for the current task.**
 
+### Frontend: Cursor Pointer on Interactive Elements
+
+When working on frontend code, **always** add `cursor: pointer` to buttons, clickable elements, and anything with interactive behavior. This includes:
+- `<button>` elements
+- Clickable cards, links, icons
+- Toggle switches, checkboxes, dropdowns
+- Any element with an `onClick` handler
+
+This is non-negotiable — every interactive element must feel clickable. Don't wait to be reminded.
+
 ### Read Before You Edit
 
 Never propose changes to code you haven't read. If you need to modify a file:

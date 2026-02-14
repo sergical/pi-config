@@ -142,41 +142,38 @@ After writing `review.md`, always copy it to the repo:
 mkdir -p .pi && cp review.md .pi/review.md
 ```
 
-## Priority Levels
+## Priority Levels — Be Ruthlessly Pragmatic
 
-- **[P0]** — Critical. Blocks release. Security issues, data loss, breaking bugs.
-- **[P1]** — Important. Should fix before merge. Logic errors, missing edge cases.
-- **[P2]** — Normal. Fix soon. Code quality, minor bugs.
-- **[P3]** — Minor. Nice to have. Style, small improvements.
+**The bar for flagging something is HIGH.** Ask yourself: "Will this actually cause a real problem in practice?" If the answer is "well, theoretically..." — don't flag it.
 
-## What to Look For
+- **[P0]** — Drop everything. This will break in production, lose data, or create a security hole. Real, provable, not hypothetical. If you can't articulate a concrete scenario where this causes damage, it's not P0.
+- **[P1]** — Genuine foot gun. Someone will trip over this and waste hours debugging, or it creates a real maintenance trap. Not "could theoretically be a problem" — it WILL bite someone.
+- **[P2]** — Worth mentioning. A real improvement that would make the code meaningfully better, but the code works fine without it. Not urgent.
+- **[P3]** — Almost irrelevant. Barely worth the ink. Only flag if you truly have nothing more important to say.
 
-### Correctness
-- Does the code do what the plan intended?
-- Are edge cases handled?
-- Are errors handled appropriately?
+### What NOT to flag
 
-### Security
-- SQL injection, XSS, open redirects?
-- Sensitive data exposure?
-- Input validation?
+- **Naming preferences** — Unless a name is actively misleading, leave it alone
+- **Hypothetical edge cases** — "What if someone passes null here?" Is that actually possible in this codebase? Check before flagging.
+- **Style differences** — You'd write it differently? Cool. That's not a finding.
+- **"Best practice" violations** — If the code works, is readable, and doesn't cause problems, the "best practice" police can stand down
+- **Speculative future problems** — "This might not scale if..." Unless there's evidence it needs to scale NOW, skip it
 
-### Quality
-- Does it follow existing patterns?
-- Is it readable and maintainable?
-- Are there unnecessary complications?
+### What TO flag
 
-### Testing
-- Are the changes tested?
-- Do the tests actually verify the behavior?
-- Are there missing test cases?
+- Real bugs that will manifest in actual usage
+- Security issues with concrete exploit scenarios
+- Logic errors where the code doesn't do what the plan intended
+- Missing error handling where errors WILL occur (not where they theoretically could)
+- Code that is genuinely confusing and will cause the next person to introduce bugs
 
 ## Guidelines
 
 - **Be specific** — File paths, line numbers, exact code
 - **Be actionable** — Don't just complain, suggest fixes
-- **Be proportional** — Don't nitpick if there are real issues
-- **Be honest** — If it's good, say so. If it's bad, say so.
+- **Be proportional** — If the code works and is readable, a short review with few findings is the RIGHT answer
+- **Be honest** — If it's good, say so. Don't manufacture findings to justify your existence
+- **Prove it** — For P0/P1, show the concrete scenario. "This will fail when X because Y" not "this could potentially..."
 
 ## Constraints
 

@@ -39,21 +39,7 @@ tmux -S "$SOCKET" capture-pane -p -J -t "$SESSION":0.0 -S -200  # watch output
 tmux -S "$SOCKET" kill-session -t "$SESSION"                   # clean up
 ```
 
-After starting a session you MUST do two things:
-
-### 1. Open a Ghostty window for the session
-
-Immediately after creating a tmux session, open a dedicated Ghostty terminal window attached to it. Use the **fully resolved absolute socket path** — never variables:
-
-```bash
-open -na Ghostty.app --args --title="📺 $SESSION" -e "tmux -S \"$SOCKET\" attach -t \"$SESSION\""
-```
-
-This gives the user a live view of the session in a separate window. **Do this every time you create a new tmux session.**
-
-### 2. Tell the user how to reattach
-
-Print a **ready-to-copy-paste command with the fully resolved absolute socket path** — never use `$SOCKET`, `$TMPDIR`, or any variable. The user's shell may not have these set.
+After starting a session, tell the user how to attach to it. Print a **ready-to-copy-paste command with the fully resolved absolute socket path** — never use `$SOCKET`, `$TMPDIR`, or any variable. The user's shell may not have these set.
 
 Example (adapt session name):
 ```
@@ -61,7 +47,7 @@ To monitor this session yourself:
   tmux -S /var/folders/xx/.../pi-tmux-sockets/pi.sock attach -t pi-lldb
 ```
 
-Both must happen right after a session is started, and the monitor command should be repeated at the end of the tool loop.
+This must happen right after a session is started, and the monitor command should be repeated at the end of the tool loop.
 
 ## Socket convention
 

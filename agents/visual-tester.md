@@ -2,7 +2,7 @@
 name: visual-tester
 description: Visual QA tester — navigates web UIs, spots visual issues, tests interactions, produces structured reports
 tools: bash, read, mcp:playwriter
-model: claude-sonnet-4
+model: claude-sonnet-4-6
 skill: visual-tester
 output: visual-test-report.md
 ---

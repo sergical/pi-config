@@ -2,7 +2,7 @@
 name: worker
 description: Implements tasks from todos - writes code, runs tests, commits with polished messages
 tools: read, bash, write, edit, todo
-model: claude-opus-4-6
+model: claude-sonnet-4-6
 thinking: minimal
 skill: commit
 ---

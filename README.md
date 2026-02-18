@@ -184,8 +184,9 @@ Specialized subagents for delegated workflows. Provided by this config, powered 
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | **scout** | Haiku | Fast codebase reconnaissance — gathers context without changes |
-| **worker** | Opus 4.6 (minimal thinking) | Implements tasks from todos, commits changes to the feature branch, and closes the todo |
-| **reviewer** | Opus 4.6 (medium thinking) | Reviews code for quality, security, and correctness |
+| **worker** | Sonnet 4.6 | Implements tasks from todos, commits changes to the feature branch, and closes the todo |
+| **reviewer** | Codex 5.3 | Reviews code for quality, security, and correctness |
+| **visual-tester** | Sonnet 4.6 | Visual QA tester — navigates web UIs, spots issues, tests interactions |
 
 #### Workflow Patterns
 

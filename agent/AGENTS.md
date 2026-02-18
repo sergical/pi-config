@@ -211,8 +211,8 @@ You can execute slash commands yourself using the `execute_command` tool:
 | Agent | Purpose | Model |
 |-------|---------|-------|
 | `scout` | Fast codebase reconnaissance | Haiku (fast, cheap) |
-| `worker` | Implements tasks from todos, makes polished commits (always using the `commit` skill), and closes the todo | Opus 4.6 (minimal thinking) |
-| `reviewer` | Reviews code for quality/security | Opus 4.6 (medium thinking) |
+| `worker` | Implements tasks from todos, makes polished commits (always using the `commit` skill), and closes the todo | Sonnet 4.6 |
+| `reviewer` | Reviews code for quality/security | Codex 5.3 |
 
 **Planning happens in the main session** (interactive, with user feedback) — not delegated to subagents.
 
@@ -267,5 +267,6 @@ Skills provide specialized instructions for specific tasks. Load them when the c
 | Building web components, pages, or frontend interfaces | `frontend-design` |
 | Working with GitHub | `github` |
 | Asked to simplify/clean up/refactor code | `code-simplifier` |
+| Merge conflicts from upstream or another repo | `manifest-merge-conflicts` |
 
 **The `commit` skill is mandatory for every single commit.** No quick `git commit -m "fix stuff"` — every commit gets the full treatment with a descriptive subject and body.

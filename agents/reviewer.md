@@ -2,7 +2,7 @@
 name: reviewer
 description: Code review agent - reviews changes for quality, security, and correctness
 tools: read, bash
-model: claude-opus-4-6
+model: codex-5-3
 thinking: medium
 
 output: review.md

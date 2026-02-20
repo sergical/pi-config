@@ -130,7 +130,7 @@ Avoid shotgun debugging ("let me try this... nope, what about this..."). If you'
 
 ### Process Management with tmux
 
-Use the `tmux` skill for background processes, interactive commands, and anything where you need to check output or send input over time. Load the skill for full details, but here's the essential pattern:
+Use tmux for background processes, interactive commands, and anything where you need to check output or send input over time. Here's the essential pattern:
 
 **When to use tmux sessions:**
 - Servers: `tmux -S "$SOCKET" send-keys -t pi-dev:0.0 -- 'bun run dev' Enter`

@@ -128,61 +128,6 @@ When something breaks, don't guess — investigate first.
 
 Avoid shotgun debugging ("let me try this... nope, what about this..."). If you're making random changes hoping something works, you don't understand the problem yet.
 
-### Process Management with tmux
-
-Use tmux for background processes, interactive commands, and anything where you need to check output or send input over time. Here's the essential pattern:
-
-**When to use tmux sessions:**
-- Servers: `tmux -S "$SOCKET" send-keys -t pi-dev:0.0 -- 'bun run dev' Enter`
-- Long-running processes: `tmux -S "$SOCKET" send-keys -t pi-watch:0.0 -- 'npm run watch' Enter`
-- Builds: `tmux -S "$SOCKET" send-keys -t pi-build:0.0 -- 'make build' Enter`
-- Interactive tools: debuggers, REPLs, database shells
-- **Any interactive command** where you need to read output and respond — installers, prompts, wizards, test runners with watch mode, CLI tools that ask questions
-
-**Prefer tmux for interactive commands.** When you know a command will produce output you need to react to, or might ask for input, run it in tmux instead of blocking on bash. This gives you a faster feedback loop:
-1. Start the command in tmux
-2. Capture the pane to check what's happening
-3. Send input or respond to prompts as needed
-4. Check back periodically until it's done
-
-This is faster than waiting for bash to return because you can inspect partial output, react to errors early, and interact with prompts without timeout pressure.
-
-**Do NOT use tmux for:**
-- Quick one-shot commands: `git status`, `ls`, `cat`, `grep`
-- Simple CLI tools with no interaction: `jira`, `kubectl get pods`
-- File operations: `mv`, `cp`, `rm`
-
-**Essential pattern:**
-```bash
-SOCKET_DIR=${TMPDIR:-/tmp}/pi-tmux-sockets
-mkdir -p "$SOCKET_DIR"
-SOCKET="$SOCKET_DIR/pi.sock"
-SESSION=pi-dev
-
-# Start a session
-tmux -S "$SOCKET" new -d -s "$SESSION" -n shell
-tmux -S "$SOCKET" send-keys -t "$SESSION":0.0 -- 'bun run dev' Enter
-
-# Monitor output
-tmux -S "$SOCKET" capture-pane -p -J -t "$SESSION":0.0 -S -200
-
-# Clean up
-tmux -S "$SOCKET" send-keys -t "$SESSION":0.0 C-c
-tmux -S "$SOCKET" kill-session -t "$SESSION"
-```
-
-**Always tell the user how to monitor** after starting a session — use the **fully resolved absolute socket path**, never variables like `$SOCKET` or `$TMPDIR`:
-```
-To monitor this session yourself:
-  tmux -S /var/folders/xx/.../pi-tmux-sockets/pi.sock attach -t pi-dev
-```
-
-**Monitor running processes:** Check logs proactively when debugging or after making changes:
-```bash
-tmux -S "$SOCKET" list-sessions                              # See what's running
-tmux -S "$SOCKET" capture-pane -p -J -t "$SESSION":0.0 -S -200  # Check output/errors
-```
-
 ### Thoughtful Questions
 
 Only ask questions that require human judgment or preference. Before asking, consider:

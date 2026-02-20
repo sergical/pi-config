@@ -79,7 +79,6 @@ Loaded on-demand when the context matches.
 | **github** | Working with GitHub via `gh` CLI |
 | **review-rubric** | Shared review guidelines — used by both the `/review` extension and the reviewer agent |
 | **skill-creator** | Scaffolding new agent skills following the Agent Skills spec |
-| **tmux** | Running background processes, servers, debuggers |
 | **visual-tester** | Visual testing web UIs with Playwriter MCP |
 
 ### Extensions

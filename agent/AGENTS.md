@@ -50,6 +50,18 @@ When working on frontend code, **always** add `cursor: pointer` to buttons, clic
 
 This is non-negotiable — every interactive element must feel clickable. Don't wait to be reminded.
 
+### Respect Project Convention Files
+
+Many projects contain agent instruction files from other tools. Be mindful of these when working in any project:
+
+- **Root files:** `CLAUDE.md`, `.cursorrules`, `.clinerules`, `COPILOT.md`, `.github/copilot-instructions.md`
+- **Rule directories:** `.claude/rules/`, `.cursor/rules/`
+- **Commands:** `.claude/commands/` — reusable prompt workflows (PR creation, releases, reviews, etc.). Treat these as project-defined procedures you should follow when the task matches.
+- **Skills:** `.claude/skills/` — can be registered in `.pi/settings.json` for pi to use directly
+- **Settings:** `.claude/settings.json` — permissions and tool configuration
+
+When entering an unfamiliar project, check for these files. Their conventions override your defaults. Use the `learn-codebase` skill for a thorough scan.
+
 ### Read Before You Edit
 
 Never propose changes to code you haven't read. If you need to modify a file:
@@ -261,6 +273,7 @@ Skills provide specialized instructions for specific tasks. Load them when the c
 
 | When... | Load skill... |
 |---------|---------------|
+| Starting work in a new/unfamiliar project, or asked to learn conventions | `learn-codebase` |
 | User wants to brainstorm / build something significant | `brainstorm` |
 | Making git commits (always — every commit must be polished and descriptive) | `commit` |
 | Starting, stopping, or configuring Docker/OrbStack services | `dev-environment` |

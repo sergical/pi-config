@@ -32,6 +32,7 @@ import { DynamicBorder, BorderedLoader } from "@mariozechner/pi-coding-agent";
 import { Container, type SelectItem, SelectList, Text, Key } from "@mariozechner/pi-tui";
 import path from "node:path";
 import { promises as fs } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 // State to track fresh session review (where we branched from).
 // Module-level state means only one review can be active at a time.
@@ -118,75 +119,27 @@ const PULL_REQUEST_PROMPT =
 const PULL_REQUEST_PROMPT_FALLBACK =
 	'Review pull request #{prNumber} ("{title}") against the base branch \'{baseBranch}\'. Start by finding the merge base between the current branch and {baseBranch} (e.g., `git merge-base HEAD {baseBranch}`), then run `git diff` against that SHA to see the changes that would be merged. Provide prioritized, actionable findings.';
 
-// The detailed review rubric (adapted from Codex's review_prompt.md)
-const REVIEW_RUBRIC = `# Review Guidelines
+// Load review rubric from shared skill file
+const EXTENSION_DIR = path.dirname(fileURLToPath(import.meta.url));
+const REVIEW_RUBRIC_SKILL_PATH = path.resolve(EXTENSION_DIR, '../skills/review-rubric/SKILL.md');
 
-You are acting as a code reviewer for a proposed code change.
+let cachedReviewRubric: string | null = null;
 
-## Determining what to flag
+async function loadReviewRubric(): Promise<string> {
+	if (cachedReviewRubric) return cachedReviewRubric;
 
-Flag issues that:
-1. Meaningfully impact the accuracy, performance, security, or maintainability of the code.
-2. Are discrete and actionable (not general issues or multiple combined issues).
-3. Don't demand rigor inconsistent with the rest of the codebase.
-4. Were introduced in the changes being reviewed (not pre-existing bugs).
-5. The author would likely fix if aware of them.
-6. Don't rely on unstated assumptions about the codebase or author's intent.
-7. Have provable impact on other parts of the code (not speculation).
-8. Are clearly not intentional changes by the author.
-9. Be particularly careful with untrusted user input and follow the specific guidelines to review.
+	try {
+		const content = await fs.readFile(REVIEW_RUBRIC_SKILL_PATH, 'utf8');
+		// Strip YAML frontmatter (--- ... ---)
+		const match = content.match(/^---\n[\s\S]*?\n---\n([\s\S]*)$/);
+		cachedReviewRubric = match ? match[1].trim() : content.trim();
+	} catch (err) {
+		console.error(`[review] Failed to load rubric from ${REVIEW_RUBRIC_SKILL_PATH}: ${err}`);
+		cachedReviewRubric = "Review the code changes and provide prioritized findings.";
+	}
 
-## Untrusted User Input
-
-1. Be careful with open redirects, they must always be checked to only go to trusted domains (?next_page=...)
-2. Always flag SQL that is not parametrized
-3. In systems with user supplied URL input, http fetches always need to be protected against access to local resources (intercept DNS resolver!)
-4. Escape, don't sanitize if you have the option (eg: HTML escaping)
-
-## Comment guidelines
-
-1. Be clear about why the issue is a problem.
-2. Communicate severity appropriately - don't exaggerate.
-3. Be brief - at most 1 paragraph.
-4. Keep code snippets under 3 lines, wrapped in inline code or code blocks.
-5. Explicitly state scenarios/environments where the issue arises.
-6. Use a matter-of-fact tone - helpful AI assistant, not accusatory.
-7. Write for quick comprehension without close reading.
-8. Avoid excessive flattery or unhelpful phrases like "Great job...".
-
-## Review priorities
-
-1. Call out newly added dependencies explicitly and explain why they're needed.
-2. Prefer simple, direct solutions over wrappers or abstractions without clear value.
-3. Favor fail-fast behavior; avoid logging-and-continue patterns that hide errors.
-4. Prefer predictable production behavior; crashing is better than silent degradation.
-5. Treat back pressure handling as critical to system stability.
-6. Apply system-level thinking; flag changes that increase operational risk or on-call wakeups.
-7. Ensure that errors are always checked against codes or stable identifiers, never error messages.
-
-## Priority levels — Be ruthlessly pragmatic
-
-The bar for flagging something is HIGH. Ask yourself: "Will this actually cause a real problem in practice?" If the answer is "well, theoretically..." — don't flag it.
-
-Tag each finding with a priority level in the title:
-- [P0] - Drop everything. Will break in production, lose data, or create a security hole. Must be provable with a concrete scenario — not hypothetical.
-- [P1] - Genuine foot gun. Someone WILL trip over this and waste hours, or it creates a real maintenance trap. Not "could theoretically be a problem."
-- [P2] - Worth mentioning. A real improvement, but the code works fine without it. Not urgent.
-- [P3] - Almost irrelevant. Barely worth the ink.
-
-Do NOT flag: naming preferences (unless actively misleading), hypothetical edge cases you can't prove will happen, style differences, "best practice" violations where the code works fine, or speculative future scaling concerns.
-
-DO flag: real bugs, security issues with concrete exploit paths, logic errors, missing error handling where errors WILL occur. For P0/P1, always show the concrete scenario.
-
-## Output format
-
-Provide your findings in a clear, structured format:
-1. List each finding with its priority tag, file location, and explanation.
-2. Keep line references as short as possible (avoid ranges over 5-10 lines).
-3. At the end, provide an overall verdict: "correct" (no blocking issues) or "needs attention" (has blocking issues).
-4. If the code works and is readable, a short review with few findings is the RIGHT answer. Don't manufacture findings.
-
-Output findings the author would genuinely benefit from knowing. If there are no qualifying findings, explicitly state the code looks good.`;
+	return cachedReviewRubric;
+}
 
 async function loadProjectReviewGuidelines(cwd: string): Promise<string | null> {
 	let currentDir = path.resolve(cwd);
@@ -862,9 +815,10 @@ export default function reviewExtension(pi: ExtensionAPI) {
 		const prompt = await buildReviewPrompt(pi, target);
 		const hint = getUserFacingHint(target);
 		const projectGuidelines = await loadProjectReviewGuidelines(ctx.cwd);
+		const reviewRubric = await loadReviewRubric();
 
 		// Combine the review rubric with the specific prompt
-		let fullPrompt = `${REVIEW_RUBRIC}\n\n---\n\nPlease perform a code review with the following focus:\n\n${prompt}`;
+		let fullPrompt = `${reviewRubric}\n\n---\n\nPlease perform a code review with the following focus:\n\n${prompt}`;
 
 		if (projectGuidelines) {
 			fullPrompt += `\n\nThis project has additional instructions for code reviews:\n\n${projectGuidelines}`;

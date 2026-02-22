@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Personal pi coding agent configuration - skills and extensions",
   "keywords": ["pi-package"],
-  "author": "HazAT",
+  "author": "sergiydybskiy",
   "license": "MIT",
   "pi": {
     "extensions": ["extensions"],

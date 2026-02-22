@@ -1,18 +1,13 @@
 {
   "mcpServers": {
-    "playwriter": {
+    "sentry": {
       "command": "npx",
-      "args": ["-y", "playwriter@latest"],
-      "lifecycle": "lazy",
-      "env": {
-        "PLAYWRITER_AUTO_ENABLE": "1"
-      }
+      "args": ["-y", "@sentry/mcp-server"],
+      "lifecycle": "lazy"
     },
-    "spark": {
-      "url": "http://localhost:8081/mcp",
-      "headers": {
-        "Authorization": "Bearer test123"
-      }
+    "vercel": {
+      "url": "https://mcp.vercel.com",
+      "lifecycle": "lazy"
     }
   }
 }

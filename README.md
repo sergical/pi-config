@@ -2,6 +2,8 @@
 
 My personal [pi](https://github.com/badlogic/pi) configuration — agents, skills, extensions, and prompts that shape how pi works for me.
 
+Based on [HazAT/pi-config](https://github.com/HazAT/pi-config), adapted for my workflow (Sentry, Next.js, TypeScript).
+
 ## Setup
 
 ### 1. Install packages
@@ -16,13 +18,13 @@ pi install npm:pi-smart-sessions
 
 **As a package (recommended):**
 ```bash
-pi install git:github.com/HazAT/pi-config
+pi install git:github.com/sergiydybskiy/pi-config
 ```
 
 **Or for local development:**
 ```bash
-git clone https://github.com/HazAT/pi-config.git ~/Projects/pi-config
-# Add "/Users/YOUR_USERNAME/Projects/pi-config" to packages in ~/.pi/agent/settings.json
+git clone https://github.com/sergiydybskiy/pi-config.git ~/src/pi-config
+# Add "/Users/YOUR_USERNAME/src/pi-config" to packages in ~/.pi/agent/settings.json
 ```
 
 ### 3. Symlink agents for subagent discovery
@@ -30,8 +32,8 @@ git clone https://github.com/HazAT/pi-config.git ~/Projects/pi-config
 pi-subagents looks for agents in `~/.pi/agent/agents/`. Symlink them:
 
 ```bash
-PI_CONFIG_DIR="$HOME/.pi/agent/git/github.com/HazAT/pi-config"
-# Or if using local dev: PI_CONFIG_DIR="$HOME/Projects/pi-config"
+PI_CONFIG_DIR="$HOME/.pi/agent/git/github.com/sergiydybskiy/pi-config"
+# Or if using local dev: PI_CONFIG_DIR="$HOME/src/pi-config"
 
 mkdir -p ~/.pi/agent/agents
 for agent in "$PI_CONFIG_DIR"/agents/*.md; do
@@ -62,7 +64,6 @@ Specialized subagents for delegated workflows, powered by `pi-subagents`.
 | **scout** | Haiku | Fast codebase reconnaissance — gathers context without making changes |
 | **worker** | Sonnet 4.6 | Implements tasks from todos, commits with polished messages, closes todos |
 | **reviewer** | Codex 5.3 | Reviews code for quality and security using the shared review-rubric skill |
-| **visual-tester** | Sonnet 4.6 | Visual QA — navigates web UIs via Playwriter MCP, spots issues, tests interactions |
 
 The brainstorm skill always runs **scout first → workers → reviewer** so workers start with a strong context baseline instead of exploring from scratch.
 
@@ -79,7 +80,16 @@ Loaded on-demand when the context matches.
 | **github** | Working with GitHub via `gh` CLI |
 | **review-rubric** | Shared review guidelines — used by both the `/review` extension and the reviewer agent |
 | **skill-creator** | Scaffolding new agent skills following the Agent Skills spec |
-| **visual-tester** | Visual testing web UIs with Playwriter MCP |
+| **session-reader** | Reading and analyzing pi session JSONL files |
+| **learn-codebase** | Discovering project conventions and security concerns when entering unfamiliar codebases |
+
+Additionally, these **global skills** (from `~/.agents/skills/`) are referenced in skill triggers:
+
+| Skill | When to Load |
+|-------|-------------|
+| **sentry-cli** | Interacting with Sentry via CLI (issues, events, projects, orgs) |
+| **find-bugs** | Reviewing changes, finding bugs, security review, or auditing code |
+| **agent-browser** | Navigating websites, testing web UIs, taking screenshots, browser interactions |
 
 ### Extensions
 
@@ -100,8 +110,8 @@ Loaded on-demand when the context matches.
 ### MCP Servers
 
 [`agent/mcp.json`](agent/mcp.json) configures MCP servers:
-- **playwriter** — Browser automation for visual testing
-- **spark** — Local dev server
+- **sentry** — Sentry MCP server for querying issues, events, and project data
+- **vercel** — Vercel MCP server for deployments, projects, logs, and environment variables
 
 ---
 
@@ -126,7 +136,17 @@ Loaded on-demand when the context matches.
 
 ---
 
+## Differences from HazAT/pi-config
+
+- **Removed** visual-tester agent and skill — replaced by global `agent-browser` skill
+- **Removed** Playwriter MCP — `agent-browser` handles browser automation
+- **Removed** Spark MCP — replaced with Sentry MCP (`@sentry/mcp-server`) and Vercel MCP (`https://mcp.vercel.com`)
+- **Added** skill triggers for `sentry-cli`, `find-bugs`, and `agent-browser` (global skills)
+- **Removed** `dev-environment` and `manifest-merge-conflicts` skill triggers (not relevant to my workflow)
+
 ## Credits
+
+Based on [HazAT/pi-config](https://github.com/HazAT/pi-config) by Daniel Griesser.
 
 Extensions from [mitsuhiko/agent-stuff](https://github.com/mitsuhiko/agent-stuff): `answer.ts`, `todos.ts`, `review.ts`
 

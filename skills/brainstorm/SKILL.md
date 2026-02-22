@@ -48,7 +48,7 @@ Phase 6.5: Create Feature Branch
     ↓
 Phase 7: Execute with Subagents (scout first → workers → polished commits)
     ↓
-Phase 7.5: Visual Testing (optional, UI/web changes only)
+Phase 7.5: Browser Testing (optional, UI/web changes only)
     ↓
 Phase 8: Review
 ```
@@ -104,7 +104,7 @@ Work through requirements **one topic at a time**:
 2. **Scope** — What's in? What's explicitly out?
 3. **Constraints** — Performance, compatibility, timeline?
 4. **Success criteria** — How do we know it's done?
-5. **Visual testing** — Does this involve UI/web changes that should be visually tested? Ask explicitly: "Should we include a visual testing step for this?" Record the answer — it determines whether Phase 7.5 runs later.
+5. **Browser testing** — Does this involve UI/web changes that should be visually tested? Ask explicitly: "Should we include a browser testing step for this?" Record the answer — it determines whether Phase 7.5 runs later.
 
 ### How to Ask
 
@@ -422,9 +422,9 @@ When the reviewer returns with issues, **act on the important ones**:
 
 ---
 
-## Phase 7.5: Visual Testing (Optional)
+## Phase 7.5: Browser Testing (Optional)
 
-After all worker todos are complete, **if the plan involves UI or web changes**, offer a visual testing pass before the reviewer.
+After all worker todos are complete, **if the plan involves UI or web changes**, offer a browser testing pass before the reviewer using `agent-browser`.
 
 ### When to Trigger
 
@@ -435,27 +435,40 @@ After all worker todos are complete, **if the plan involves UI or web changes**,
 
 Ask the user before proceeding:
 
-> "All implementation todos are complete. This involved UI changes — would you like to run a visual test before the code review?"
+> "All implementation todos are complete. This involved UI changes — would you like to run a browser test before the code review?"
 
-**If the user says yes**, confirm prerequisites:
+**If the user says yes**, confirm:
 
-> "Two things I need before running the visual tester:
-> 1. Is your local dev server running? (e.g., `npm run dev`)
-> 2. Is the Playwriter Chrome extension connected? (Click the extension icon on your localhost tab)"
+> "Is your local dev server running? (e.g., `npm run dev`)"
 
 **If the user says no**, skip straight to the reviewer.
 
-### Running the Visual Tester
+### Running Browser Tests
 
-Once prerequisites are confirmed:
+Use the `agent-browser` skill to test the UI:
 
-```typescript
-{ agent: "visual-tester", task: "Test the UI at [URL]. Focus on: [areas from the plan]. Plan: ~/.pi/history/<project>/plans/YYYY-MM-DD-feature.md" }
+```bash
+# Navigate to the page
+agent-browser open http://localhost:3000
+
+# Take a snapshot of interactive elements
+agent-browser snapshot -i
+
+# Screenshot for visual verification
+agent-browser screenshot
+
+# Test responsive breakpoints
+agent-browser set viewport 375 812
+agent-browser screenshot
+agent-browser set viewport 1280 800
+agent-browser screenshot
 ```
+
+Focus on: layout correctness, interactive elements working, responsive behavior, and any areas mentioned in the plan.
 
 ### Triaging Findings
 
-When the visual tester returns a report, triage findings the same way as reviewer findings:
+Triage findings the same way as reviewer findings:
 
 - **P0 (Drop everything)** — Must fix: broken layouts, unreadable text, non-functional interactions
 - **P1 (Foot gun)** — Should fix: real UX problems that will confuse users

@@ -173,6 +173,11 @@ You can execute slash commands yourself using the `execute_command` tool:
 
 **Planning happens in the main session** (interactive, with user feedback) — not delegated to subagents.
 
+#### MCP Servers
+
+- **Sentry MCP** — Query issues, events, and project data directly. Use it when you need Sentry context during debugging or investigation.
+- **Vercel MCP** — Manage deployments, projects, logs, domains, and environment variables. Use it for deployment status, checking logs, or managing Vercel project settings.
+
 #### When to Delegate
 
 - **Todos ready to execute** → Spawn `scout` then `worker` agents
@@ -221,11 +226,12 @@ Skills provide specialized instructions for specific tasks. Load them when the c
 | Starting work in a new/unfamiliar project, or asked to learn conventions | `learn-codebase` |
 | User wants to brainstorm / build something significant | `brainstorm` |
 | Making git commits (always — every commit must be polished and descriptive) | `commit` |
-| Starting, stopping, or configuring Docker/OrbStack services | `dev-environment` |
 | Building web components, pages, or frontend interfaces | `frontend-design` |
 | Working with GitHub | `github` |
 | Asked to simplify/clean up/refactor code | `code-simplifier` |
-| Merge conflicts from upstream or another repo | `manifest-merge-conflicts` |
 | Reading, reviewing, or analyzing a pi session JSONL file | `session-reader` |
+| Interacting with Sentry via CLI (issues, events, projects, orgs) | `sentry-cli` |
+| Asked to review changes, find bugs, security review, or audit code | `find-bugs` |
+| Need to navigate websites, test web UIs, take screenshots, or interact with web pages | `agent-browser` |
 
 **The `commit` skill is mandatory for every single commit.** No quick `git commit -m "fix stuff"` — every commit gets the full treatment with a descriptive subject and body.

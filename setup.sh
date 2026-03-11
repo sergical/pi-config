@@ -23,11 +23,30 @@ echo ""
 
 # ─── Settings ──────────────────────────────────────────────────────────────────
 if [ ! -f "$EXPECTED_DIR/settings.json" ]; then
-  echo "Creating settings.json from template..."
-  cat > "$EXPECTED_DIR/settings.json" << 'EOF'
+  echo "Which Claude provider do you want to use?"
+  echo "  1) anthropic  — Direct Anthropic API (needs API key or /login)"
+  echo "  2) bedrock    — AWS Bedrock (needs AWS credentials)"
+  echo ""
+  read -rp "Choose [1/2] (default: 1): " provider_choice
+
+  case "$provider_choice" in
+    2|bedrock)
+      PROVIDER="amazon-bedrock"
+      echo ""
+      echo "  Using Bedrock. Make sure AWS credentials are configured:"
+      echo "    export AWS_PROFILE=your-profile"
+      echo "    # or AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY"
+      echo "    # optional: AWS_REGION (defaults to us-east-1)"
+      ;;
+    *)
+      PROVIDER="anthropic"
+      ;;
+  esac
+
+  cat > "$EXPECTED_DIR/settings.json" << EOF
 {
   "defaultThinkingLevel": "high",
-  "defaultProvider": "anthropic",
+  "defaultProvider": "$PROVIDER",
   "defaultModel": "claude-sonnet-4-6",
   "hideThinkingBlock": false,
   "packages": [
@@ -37,11 +56,8 @@ if [ ! -f "$EXPECTED_DIR/settings.json" ]; then
   ]
 }
 EOF
-  echo "  ✓ Created settings.json (default: anthropic + claude-sonnet-4-6)"
   echo ""
-  echo "  To use Bedrock instead, edit settings.json:"
-  echo '    "defaultProvider": "amazon-bedrock"'
-  echo "  And set AWS_PROFILE or AWS credentials in your shell."
+  echo "  ✓ Created settings.json (provider: $PROVIDER, model: claude-sonnet-4-6)"
   echo ""
 else
   echo "settings.json already exists — skipping"
@@ -56,13 +72,23 @@ pi install git:github.com/HazAT/pi-smart-sessions 2>/dev/null || echo "  pi-smar
 echo ""
 
 # ─── Auth reminder ─────────────────────────────────────────────────────────────
-if [ ! -f "$EXPECTED_DIR/auth.json" ]; then
+PROVIDER_SET=$(grep -o '"defaultProvider": *"[^"]*"' "$EXPECTED_DIR/settings.json" | grep -o '"[^"]*"$' | tr -d '"')
+
+if [ "$PROVIDER_SET" = "amazon-bedrock" ]; then
+  if ! aws sts get-caller-identity &>/dev/null; then
+    echo "⚠️  AWS credentials not found. Bedrock needs valid AWS auth:"
+    echo "     export AWS_PROFILE=your-profile"
+    echo "     # or AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY"
+    echo ""
+  else
+    echo "  ✓ AWS credentials detected"
+    echo ""
+  fi
+elif [ ! -f "$EXPECTED_DIR/auth.json" ]; then
   echo "⚠️  No auth.json found. Set up authentication:"
   echo "   Option 1: Run 'pi' and use /login"
   echo "   Option 2: Create ~/.pi/agent/auth.json:"
   echo '     {"anthropic": {"type": "api_key", "key": "sk-ant-..."}}'
-  echo ""
-  echo "   For Bedrock: set AWS_PROFILE or AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY"
   echo ""
 fi
 

@@ -1,11 +1,8 @@
-<!--
-Vendored from oh-my-pi by can1357:
-https://github.com/can1357/oh-my-pi/blob/main/.omp/skills/semantic-compression/SKILL.md
--->
 ---
 name: semantic-compression
 description: Aggressively remove grammatical scaffolding LLMs reconstruct while preserving meaning-carrying content. Output may be fragments. Use when compressing text for prompts, reducing token count, preparing context for LLM input, or making documentation more token-efficient. Applies LLM-aware compression rules that delete predictable grammar while preserving semantics.
 ---
+<!-- Vendored from oh-my-pi by can1357: https://github.com/can1357/oh-my-pi/blob/main/.omp/skills/semantic-compression/SKILL.md -->
 
 # Semantic Compression
 

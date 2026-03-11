@@ -1,11 +1,8 @@
-<!--
-Vendored from oh-my-pi by can1357:
-https://github.com/can1357/oh-my-pi/blob/main/.omp/skills/system-prompts/SKILL.md
--->
 ---
 name: system-prompts
 description: Write system prompts, tool docs, and agent definitions. Combines research-backed prompt engineering (+15-30% measured improvements) with project XML conventions. Covers tag hierarchy, structural templates, high-impact interventions, anti-patterns.
 ---
+<!-- Vendored from oh-my-pi by can1357: https://github.com/can1357/oh-my-pi/blob/main/.omp/skills/system-prompts/SKILL.md -->
 
 # System Prompt Engineering
 

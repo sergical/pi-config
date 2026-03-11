@@ -172,9 +172,9 @@ All agent working files are archived to `~/.pi/history/<project>/` where `<proje
 | Agent | Purpose | Model |
 |-------|---------|-------|
 | `scout` | Fast codebase reconnaissance | Haiku (fast, cheap) |
-| `worker` | Implements tasks from todos, makes polished commits (always using the `commit` skill), and closes the todo | Sonnet 4.6 |
+| `worker` | Implements tasks from todos, makes polished commits (always using the `commit` skill), and closes the todo | Opus 4.6 (heavy lifting) |
 | `reviewer` | Reviews code for quality/security | Sonnet 4.6 |
-| `researcher` | Deep research using Claude Code (web research, code analysis, technical exploration) | Sonnet 4.6 → Claude Code |
+| `researcher` | Deep research using Claude Code (web research, code analysis, technical exploration) | Opus 4.6 → Claude Code |
 
 **Planning happens in the main session** (interactive, with user feedback) — not delegated to subagents.
 

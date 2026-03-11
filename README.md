@@ -70,9 +70,9 @@ Specialized subagents for delegated workflows, powered by `pi-subagents`.
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | **scout** | Haiku | Fast codebase reconnaissance — gathers context without making changes |
-| **worker** | Sonnet 4.6 | Implements tasks from todos, commits with polished messages, closes todos |
+| **worker** | Opus 4.6 | Implements tasks from todos, commits with polished messages, closes todos |
 | **reviewer** | Sonnet 4.6 | Reviews code for quality and security using the shared review-rubric skill |
-| **researcher** | Sonnet 4.6 → Claude Code | Deep research — web search, code analysis, technical exploration |
+| **researcher** | Opus 4.6 → Claude Code | Deep research — web search, code analysis, technical exploration |
 
 The brainstorm skill always runs **scout first → workers → reviewer** so workers start with a strong context baseline.
 

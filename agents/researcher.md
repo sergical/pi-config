@@ -2,7 +2,7 @@
 name: researcher
 description: Deep research using Claude Code — web research, code analysis, technical exploration, anything requiring multi-step investigation
 tools: claude, write, bash
-model: claude-sonnet-4-6
+model: claude-opus-4-6
 output: research.md
 ---
 

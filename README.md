@@ -6,50 +6,58 @@ Based on [HazAT/pi-config](https://github.com/HazAT/pi-config), adapted for my w
 
 ## Setup
 
-### 1. Install packages
+### 1. Clone to `~/.pi/agent/`
 
 ```bash
-pi install npm:pi-subagents
-pi install npm:pi-mcp-adapter
-pi install npm:pi-smart-sessions
+# Back up existing auth if needed
+cp ~/.pi/agent/auth.json /tmp/auth.json.bak 2>/dev/null
+
+# Clone
+git clone git@github.com:sergical/pi-config.git ~/.pi/agent
+
+# Restore auth
+cp /tmp/auth.json.bak ~/.pi/agent/auth.json 2>/dev/null
 ```
 
-### 2. Install this config
-
-**As a package (recommended):**
-```bash
-pi install git:github.com/sergiydybskiy/pi-config
-```
-
-**Or for local development:**
-```bash
-git clone https://github.com/sergiydybskiy/pi-config.git ~/src/pi-config
-# Add "/Users/YOUR_USERNAME/src/pi-config" to packages in ~/.pi/agent/settings.json
-```
-
-### 3. Symlink agents for subagent discovery
-
-pi-subagents looks for agents in `~/.pi/agent/agents/`. Symlink them:
+### 2. Run setup
 
 ```bash
-PI_CONFIG_DIR="$HOME/.pi/agent/git/github.com/sergiydybskiy/pi-config"
-# Or if using local dev: PI_CONFIG_DIR="$HOME/src/pi-config"
-
-mkdir -p ~/.pi/agent/agents
-for agent in "$PI_CONFIG_DIR"/agents/*.md; do
-  ln -sf "$agent" ~/.pi/agent/agents/
-done
+cd ~/.pi/agent && ./setup.sh
 ```
 
-### 4. Restart pi
+This installs packages, creates `settings.json` (if missing), and prints auth instructions.
+
+### 3. Restart pi
+
+## Provider Routing (Anthropic / Bedrock)
+
+Switch between Anthropic direct API and AWS Bedrock by editing `settings.json`:
+
+```json
+{
+  "defaultProvider": "anthropic",
+  "defaultModel": "claude-sonnet-4-6"
+}
+```
+
+For Bedrock:
+```json
+{
+  "defaultProvider": "amazon-bedrock"
+}
+```
+
+Set AWS credentials via `AWS_PROFILE`, `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`, or IAM roles. See `settings.json.example` and `models.json.example` for all options.
+
+Switch models mid-session with `/model`.
 
 ## Packages
 
 | Package | Purpose |
 |---------|---------|
-| [pi-subagents](https://github.com/nicobailon/pi-subagents) | `subagent` tool for delegating tasks to scout, worker, reviewer agents |
+| [pi-subagents](https://github.com/nicobailon/pi-subagents) | `subagent` tool for delegating tasks to scout, worker, reviewer, researcher agents |
 | [pi-mcp-adapter](https://github.com/nicobailon/pi-mcp-adapter) | MCP server integration |
-| [pi-smart-sessions](https://github.com/HazAT/pi-smart-sessions) | Auto-names sessions with AI-generated summaries from skill invocations |
+| [pi-smart-sessions](https://github.com/HazAT/pi-smart-sessions) | Auto-names sessions with AI-generated summaries |
 
 ---
 
@@ -63,9 +71,10 @@ Specialized subagents for delegated workflows, powered by `pi-subagents`.
 |-------|-------|---------|
 | **scout** | Haiku | Fast codebase reconnaissance — gathers context without making changes |
 | **worker** | Sonnet 4.6 | Implements tasks from todos, commits with polished messages, closes todos |
-| **reviewer** | Codex 5.3 | Reviews code for quality and security using the shared review-rubric skill |
+| **reviewer** | Sonnet 4.6 | Reviews code for quality and security using the shared review-rubric skill |
+| **researcher** | Sonnet 4.6 → Claude Code | Deep research — web search, code analysis, technical exploration |
 
-The brainstorm skill always runs **scout first → workers → reviewer** so workers start with a strong context baseline instead of exploring from scratch.
+The brainstorm skill always runs **scout first → workers → reviewer** so workers start with a strong context baseline.
 
 ### Skills
 
@@ -76,12 +85,20 @@ Loaded on-demand when the context matches.
 | **brainstorm** | Planning a new feature — full flow: investigate → clarify → explore → validate → plan → todos → execute |
 | **code-simplifier** | Simplifying or cleaning up code |
 | **commit** | Making git commits (mandatory for every commit) |
+| **create-branch** | Creating a new git branch following Sentry conventions |
+| **pr-writer** | Creating or updating pull requests following Sentry conventions |
+| **iterate-pr** | Iterating on a PR until CI passes — automates fix-push-wait cycle |
 | **frontend-design** | Building web components, pages, or apps |
+| **presentation-creator** | Creating data-driven slide decks with React + Vite + Sentry branding |
 | **github** | Working with GitHub via `gh` CLI |
 | **review-rubric** | Shared review guidelines — used by both the `/review` extension and the reviewer agent |
-| **skill-creator** | Scaffolding new agent skills following the Agent Skills spec |
-| **session-reader** | Reading and analyzing pi session JSONL files |
+| **security-review** | OWASP-style security code review with confidence-based reporting |
+| **gha-security-review** | GitHub Actions workflow security review — exploitation-focused |
+| **add-mcp-server** | Adding or configuring MCP servers (global or project-local) |
+| **semantic-compression** | LLM-aware text compression for reducing token count |
+| **system-prompts** | Writing system prompts, tool docs, and agent definitions with research-backed techniques |
 | **learn-codebase** | Discovering project conventions and security concerns when entering unfamiliar codebases |
+| **session-reader** | Reading and analyzing pi session JSONL files |
 
 Additionally, these **global skills** (from `~/.agents/skills/`) are referenced in skill triggers:
 
@@ -96,7 +113,6 @@ Additionally, these **global skills** (from `~/.agents/skills/`) are referenced 
 | Extension | What it provides |
 |-----------|------------------|
 | **answer.ts** | `/answer` command + `Ctrl+.` — extracts questions from last message into interactive Q&A UI |
-| **context-filter/** | `.pi/.context` file for controlling which files and skills appear in the system prompt |
 | **cost.ts** | `/cost` command — API cost summary across sessions and models |
 | **execute-command.ts** | `execute_command` tool — lets the agent self-invoke `/answer`, `/reload`, etc. |
 | **ghostty.ts** | Ghostty terminal title + progress bar integration |
@@ -105,11 +121,11 @@ Additionally, these **global skills** (from `~/.agents/skills/`) are referenced 
 
 ### AGENTS.md
 
-[`agent/AGENTS.md`](agent/AGENTS.md) defines core principles (proactive mindset, keep it simple, read before edit, verify before done, etc.), agent delegation patterns, skill triggers, and commit strategy. Symlinked to `~/.pi/agent/AGENTS.md`.
+[`AGENTS.md`](AGENTS.md) defines core principles (proactive mindset, keep it simple, read before edit, verify before done, etc.), agent delegation patterns, skill triggers, and commit strategy.
 
 ### MCP Servers
 
-[`agent/mcp.json`](agent/mcp.json) configures MCP servers:
+[`mcp.json`](mcp.json) configures MCP servers:
 - **sentry** — Sentry MCP server for querying issues, events, and project data
 - **vercel** — Vercel MCP server for deployments, projects, logs, and environment variables
 
@@ -136,13 +152,35 @@ Additionally, these **global skills** (from `~/.agents/skills/`) are referenced 
 
 ---
 
+## Architecture
+
+This repo is designed to live at `~/.pi/agent/` — pi's agent configuration directory. No symlinks needed.
+
+```
+~/.pi/agent/              ← this repo
+├── AGENTS.md             ← core agent instructions
+├── mcp.json              ← MCP server config
+├── agents/               ← subagent definitions (tracked in git)
+├── skills/               ← on-demand skill instructions
+├── extensions/           ← slash commands, tools, TUI integrations
+├── setup.sh              ← automated setup script
+├── settings.json.example ← template for settings
+├── models.json.example   ← template for provider routing
+├── settings.json         ← local settings (gitignored)
+├── auth.json             ← API keys (gitignored)
+└── sessions/             ← session data (gitignored)
+```
+
 ## Differences from HazAT/pi-config
 
-- **Removed** visual-tester agent and skill — replaced by global `agent-browser` skill
-- **Removed** Playwriter MCP — `agent-browser` handles browser automation
-- **Removed** Spark MCP — replaced with Sentry MCP (`@sentry/mcp-server`) and Vercel MCP (`https://mcp.vercel.com`)
-- **Added** skill triggers for `sentry-cli`, `find-bugs`, and `agent-browser` (global skills)
-- **Removed** `dev-environment` and `manifest-merge-conflicts` skill triggers (not relevant to my workflow)
+- **Architecture**: Repo lives at `~/.pi/agent/` directly — no symlinks or packages path needed
+- **Provider routing**: Flexible Anthropic/Bedrock switching via `settings.json`
+- **New skills**: `pr-writer`, `iterate-pr`, `create-branch`, `security-review`, `gha-security-review`, `presentation-creator` (from [getsentry/skills](https://github.com/getsentry/skills))
+- **Vendored skills**: `semantic-compression`, `system-prompts` (from [oh-my-pi](https://github.com/can1357/oh-my-pi))
+- **New agent**: `researcher` for deep research using Claude Code
+- **Removed**: `context-filter` extension, `visual-tester` agent (replaced by global `agent-browser`)
+- **Removed**: `tmux` skill, `dev-environment` skill, `manifest-merge-conflicts` skill
+- **Added**: Skill triggers for `sentry-cli`, `find-bugs`, `agent-browser` (global skills)
 
 ## Credits
 
@@ -152,6 +190,8 @@ Extensions from [mitsuhiko/agent-stuff](https://github.com/mitsuhiko/agent-stuff
 
 Skills from [mitsuhiko/agent-stuff](https://github.com/mitsuhiko/agent-stuff): `commit`, `github`
 
-Skills from [getsentry/skills](https://github.com/getsentry/skills): `code-simplifier`
+Skills from [getsentry/skills](https://github.com/getsentry/skills): `code-simplifier`, `pr-writer`, `iterate-pr`, `create-branch`, `security-review`, `gha-security-review`, `presentation-creator`
+
+Skills from [oh-my-pi](https://github.com/can1357/oh-my-pi): `semantic-compression`, `system-prompts`
 
 Patterns inspired by [obra/superpowers](https://github.com/obra/superpowers): `brainstorm` skill, core principles

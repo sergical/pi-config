@@ -1,0 +1,18 @@
+{
+  "defaultThinkingLevel": "high",
+  "hideThinkingBlock": false,
+
+  "_provider_options": "anthropic | amazon-bedrock",
+  "defaultProvider": "anthropic",
+
+  "_model_options": "claude-opus-4-6 | claude-sonnet-4-6 | claude-haiku-4-5",
+  "defaultModel": "claude-sonnet-4-6",
+
+  "_bedrock_note": "For Bedrock: set AWS_PROFILE or AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY env vars, optionally AWS_REGION (defaults to us-east-1)",
+
+  "packages": [
+    "git:github.com/nicobailon/pi-subagents",
+    "git:github.com/nicobailon/pi-mcp-adapter",
+    "git:github.com/HazAT/pi-smart-sessions"
+  ]
+}

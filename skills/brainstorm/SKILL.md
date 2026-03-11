@@ -48,7 +48,7 @@ Phase 6.5: Create Feature Branch
     ↓
 Phase 7: Execute with Subagents (scout first → workers → polished commits)
     ↓
-Phase 7.5: Browser Testing (optional, UI/web changes only)
+Phase 7.5: Visual Testing (optional, UI/web changes only)
     ↓
 Phase 8: Review
 ```
@@ -104,7 +104,7 @@ Work through requirements **one topic at a time**:
 2. **Scope** — What's in? What's explicitly out?
 3. **Constraints** — Performance, compatibility, timeline?
 4. **Success criteria** — How do we know it's done?
-5. **Browser testing** — Does this involve UI/web changes that should be visually tested? Ask explicitly: "Should we include a browser testing step for this?" Record the answer — it determines whether Phase 7.5 runs later.
+5. **Visual testing** — Don't ask about this. The user will tell you if they want visual testing. Only run Phase 7.5 if the user explicitly requests it.
 
 ### How to Ask
 
@@ -362,10 +362,10 @@ Workers are expensive (Sonnet). Every minute a worker spends grepping and readin
 { agent: "scout", task: "Gather context for implementing [feature]. Key areas: [list from plan]. Read the plan at ~/.pi/history/<project>/plans/YYYY-MM-DD-feature.md and identify all files that will be created or modified. Map out existing patterns, types, imports, and conventions that workers will need." }
 
 // Step 2: Workers execute todos sequentially — each gets the scout's context
-{ agent: "worker", task: "Implement TODO-xxxx. Use the commit skill to write a polished, descriptive commit message. Mark the todo as done. Plan: ~/.pi/history/<project>/plans/YYYY-MM-DD-feature.md\n\nScout context (use as your starting baseline — you can still look around but this covers the key files):\n{read context.md from chain_dir or ~/.pi/history/<project>/context.md}" }
+{ agent: "worker", task: "Implement TODO-xxxx. Use the commit skill to write a polished, descriptive commit message. Mark the todo as done. Plan: ~/.pi/history/<project>/plans/YYYY-MM-DD-feature.md\n\nScout context (use as your starting baseline — you can still look around but this covers the key files):\n{read context.md from .pi/context.md}" }
 
 // Check result, then next todo with same scout context
-{ agent: "worker", task: "Implement TODO-yyyy. Use the commit skill to write a polished, descriptive commit message. Mark the todo as done. Plan: ~/.pi/history/<project>/plans/YYYY-MM-DD-feature.md\n\nScout context (use as your starting baseline — you can still look around but this covers the key files):\n{read context.md from chain_dir or ~/.pi/history/<project>/context.md}" }
+{ agent: "worker", task: "Implement TODO-yyyy. Use the commit skill to write a polished, descriptive commit message. Mark the todo as done. Plan: ~/.pi/history/<project>/plans/YYYY-MM-DD-feature.md\n\nScout context (use as your starting baseline — you can still look around but this covers the key files):\n{read context.md from .pi/context.md}" }
 
 // After all todos complete, review the feature branch against main
 { agent: "reviewer", task: "Review the feature branch against main. Plan: ~/.pi/history/<project>/plans/YYYY-MM-DD-feature.md" }
@@ -373,14 +373,14 @@ Workers are expensive (Sonnet). Every minute a worker spends grepping and readin
 
 ### Practical Implementation
 
-The scout writes its findings to `context.md` (and copies to `~/.pi/history/<project>/context.md`). Before spawning each worker, **read the scout's context file and paste it into the worker's task**:
+The scout writes its findings to `context.md` (working copy in `.pi/context.md`, archived in `~/.pi/history/<project>/scouts/`). Before spawning each worker, **read the scout's context file and paste it into the worker's task**:
 
 ```typescript
 // 1. Run scout
 subagent({ agent: "scout", task: "Gather context for [feature]. Read the plan at ~/.pi/history/<project>/plans/YYYY-MM-DD-feature.md. Identify all files that will be created/modified, map existing patterns, types, and conventions." })
 
-// 2. Read the scout's output
-const scoutContext = read("~/.pi/history/<project>/context.md")
+// 2. Read the scout's working copy
+const scoutContext = read(".pi/context.md")
 
 // 3. Pass it to each worker
 subagent({ agent: "worker", task: `Implement TODO-xxxx. Use the commit skill to write a polished, descriptive commit message. Mark the todo as done. Plan: ~/.pi/history/<project>/plans/YYYY-MM-DD-feature.md
@@ -422,53 +422,31 @@ When the reviewer returns with issues, **act on the important ones**:
 
 ---
 
-## Phase 7.5: Browser Testing (Optional)
+## Phase 7.5: Visual Testing (Optional)
 
-After all worker todos are complete, **if the plan involves UI or web changes**, offer a browser testing pass before the reviewer using `agent-browser`.
+After all worker todos are complete, **if the plan involves UI or web changes**, offer a visual testing pass before the reviewer.
 
 ### When to Trigger
 
-- The plan involves UI components, layouts, pages, or web-facing changes
-- **Skip for:** backend-only work, CLI tools, config changes, pure library code
+**Only when the user explicitly asks for it.** Don't proactively offer or ask about visual testing — the user will tell you when they want it.
 
-### Manual Checkpoint
+If the user requests visual testing, confirm prerequisites:
 
-Ask the user before proceeding:
+> "Two things I need before running the visual tester:
+> 1. Is your local dev server running? (e.g., `npm run dev`)
+> 2. Is the Playwriter Chrome extension connected? (Click the extension icon on your localhost tab)"
 
-> "All implementation todos are complete. This involved UI changes — would you like to run a browser test before the code review?"
+### Running the Visual Tester
 
-**If the user says yes**, confirm:
+Once prerequisites are confirmed:
 
-> "Is your local dev server running? (e.g., `npm run dev`)"
-
-**If the user says no**, skip straight to the reviewer.
-
-### Running Browser Tests
-
-Use the `agent-browser` skill to test the UI:
-
-```bash
-# Navigate to the page
-agent-browser open http://localhost:3000
-
-# Take a snapshot of interactive elements
-agent-browser snapshot -i
-
-# Screenshot for visual verification
-agent-browser screenshot
-
-# Test responsive breakpoints
-agent-browser set viewport 375 812
-agent-browser screenshot
-agent-browser set viewport 1280 800
-agent-browser screenshot
+```typescript
+{ agent: "visual-tester", task: "Test the UI at [URL]. Focus on: [areas from the plan]. Plan: ~/.pi/history/<project>/plans/YYYY-MM-DD-feature.md" }
 ```
-
-Focus on: layout correctness, interactive elements working, responsive behavior, and any areas mentioned in the plan.
 
 ### Triaging Findings
 
-Triage findings the same way as reviewer findings:
+When the visual tester returns a report, triage findings the same way as reviewer findings:
 
 - **P0 (Drop everything)** — Must fix: broken layouts, unreadable text, non-functional interactions
 - **P1 (Foot gun)** — Should fix: real UX problems that will confuse users
@@ -530,7 +508,7 @@ Then work through todos sequentially:
 Check:
 1. ✅ All worker todos are closed?
 2. ✅ **Every completed todo has a polished commit** (using the `commit` skill)?
-3. ✅ **Visual testing offered?** (if UI/web changes — user may skip, that's fine)
+3. ✅ **Visual testing run?** (only if the user requested it — don't ask)
 4. ✅ **Reviewer has run?** ← If no, run it now
 5. ✅ Reviewer findings triaged and addressed?
 
@@ -591,6 +569,30 @@ todo(action: "update", id: "TODO-xxxx", status: "closed")
 ---
 
 ## Tips for Good Brainstorming
+
+### Don't Rush Big Problems
+
+Not everything fits in one brainstorming session. When the scope is large — a full product, a multi-system feature, a complex architecture — **slow down and propose splitting the conversation**.
+
+Signs it's too big for one pass:
+- Multiple independent subsystems or domains
+- More than ~10 todos would come out of it
+- Tradeoffs that deserve dedicated discussion (e.g., data model, auth strategy, API design)
+- Something that would take more than a day or two to build
+
+**What to do:** Suggest using `/tree` to branch the session. `/tree` lets you jump to any point in the conversation and continue from there — creating a separate branch for each sub-topic. Each branch gets focused, deep discussion. Then you `/tree` back to the common point and synthesize everything into a unified plan.
+
+> "This is a big one — I think we'd get a better result if we break it into focused chunks rather than rushing through everything at once. We can `/tree` off into separate branches to go deep on each area, then come back and bring it all together into one plan."
+
+Propose concrete splits:
+> "We could split this into:
+> 1. **Data model & API design** — nail down the schema and endpoints
+> 2. **Auth & permissions** — discuss the access control approach
+> 3. **Frontend flows** — walk through the UI and user journeys
+> 
+> We'll `/tree` into each one, discuss tradeoffs properly, then `/tree` back here and I'll synthesize a unified plan from all the branches."
+
+This prevents shallow design on complex problems. A 20-minute skim over a huge feature leads to a weak plan and rework later. Three focused deep dives produce much better outcomes because each branch gets the attention it deserves.
 
 ### Read the Room
 - If they have a clear vision → validate rather than over-question

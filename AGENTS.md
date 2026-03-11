@@ -40,16 +40,6 @@ Avoid over-engineering. Only make changes that are directly requested or clearly
 
 **The right amount of complexity is the minimum needed for the current task.**
 
-### Frontend: Cursor Pointer on Interactive Elements
-
-When working on frontend code, **always** add `cursor: pointer` to buttons, clickable elements, and anything with interactive behavior. This includes:
-- `<button>` elements
-- Clickable cards, links, icons
-- Toggle switches, checkboxes, dropdowns
-- Any element with an `onClick` handler
-
-This is non-negotiable — every interactive element must feel clickable. Don't wait to be reminded.
-
 ### Respect Project Convention Files
 
 Many projects contain agent instruction files from other tools. Be mindful of these when working in any project:
@@ -133,7 +123,7 @@ Avoid shotgun debugging ("let me try this... nope, what about this..."). If you'
 Only ask questions that require human judgment or preference. Before asking, consider:
 
 - Can I check the codebase for conventions? → Do it
-- Can I try something and see if it works? → Do it  
+- Can I try something and see if it works? → Do it
 - Can I make a reasonable default choice? → Do it
 
 **Good questions** require human input:
@@ -156,8 +146,22 @@ This section applies to the main Pi agent, not subagents.
 
 You can execute slash commands yourself using the `execute_command` tool:
 - **Run `/answer`** after asking multiple questions — don't make the user invoke it
-- **Run `/reload`** after creating skills
 - **Send follow-up prompts** to yourself
+
+### History & Archives
+
+All agent working files are archived to `~/.pi/history/<project>/` where `<project>` is `basename $PWD`. Nothing is ever lost.
+
+```
+~/.pi/history/<project>/
+  plans/                  # Brainstorm plans (YYYY-MM-DD-name.md)
+  todos/                  # Todo files
+  scouts/                 # Scout context snapshots (YYYY-MM-DD-HHMMSS-context.md)
+  reviews/                # Code reviews (YYYY-MM-DD-HHMMSS-review.md)
+  research/               # Researcher findings (YYYY-MM-DD-HHMMSS-research.md)
+```
+
+**Working copies** live in `<project>/.pi/` during chain execution and get cleaned up by workers. **Archives** in `~/.pi/history/` are permanent.
 
 ### Delegate to Subagents
 
@@ -169,7 +173,8 @@ You can execute slash commands yourself using the `execute_command` tool:
 |-------|---------|-------|
 | `scout` | Fast codebase reconnaissance | Haiku (fast, cheap) |
 | `worker` | Implements tasks from todos, makes polished commits (always using the `commit` skill), and closes the todo | Sonnet 4.6 |
-| `reviewer` | Reviews code for quality/security | Codex 5.3 |
+| `reviewer` | Reviews code for quality/security | Sonnet 4.6 |
+| `researcher` | Deep research using Claude Code (web research, code analysis, technical exploration) | Sonnet 4.6 → Claude Code |
 
 **Planning happens in the main session** (interactive, with user feedback) — not delegated to subagents.
 
@@ -183,6 +188,7 @@ You can execute slash commands yourself using the `execute_command` tool:
 - **Todos ready to execute** → Spawn `scout` then `worker` agents
 - **Code review needed** → Delegate to `reviewer`
 - **Need context first** → Start with `scout`
+- **Web research or external info needed** → Delegate to `researcher`
 
 #### Chain Patterns
 
@@ -208,6 +214,8 @@ You can execute slash commands yourself using the `execute_command` tool:
 
 **Do NOT squash merge or merge feature branches back into main.** Work stays on the feature branch with individual, polished commits. Each completed todo should result in a well-crafted commit using the `commit` skill — every single time, no exceptions. The commit message should be descriptive and tell the story of what changed and why.
 
+**Never amend commits on `main` (or `master`).** Amending is only acceptable on feature branches. Before running `git commit --amend`, check the current branch — if it's `main` or `master`, create a new commit instead.
+
 #### When NOT to Delegate
 
 - Quick fixes (< 2 minutes of work)
@@ -219,17 +227,26 @@ You can execute slash commands yourself using the `execute_command` tool:
 
 ### Skill Triggers
 
-Skills provide specialized instructions for specific tasks. Load them when the context matches.
+Skills provide specialized instructions for specific tasks. Load them when the context matches. Also provide them to subagents depending on the task.
 
 | When... | Load skill... |
 |---------|---------------|
 | Starting work in a new/unfamiliar project, or asked to learn conventions | `learn-codebase` |
 | User wants to brainstorm / build something significant | `brainstorm` |
 | Making git commits (always — every commit must be polished and descriptive) | `commit` |
+| Creating or updating a pull request | `pr-writer` |
+| Creating a new git branch | `create-branch` |
+| Iterating on a PR until CI passes | `iterate-pr` |
 | Building web components, pages, or frontend interfaces | `frontend-design` |
+| Creating presentation slides | `presentation-creator` |
 | Working with GitHub | `github` |
 | Asked to simplify/clean up/refactor code | `code-simplifier` |
 | Reading, reviewing, or analyzing a pi session JSONL file | `session-reader` |
+| Adding or configuring an MCP server (global or project-local) | `add-mcp-server` |
+| Security review, finding vulnerabilities, OWASP audit | `security-review` |
+| Reviewing GitHub Actions workflows for security | `gha-security-review` |
+| Compressing text for prompts or reducing token count | `semantic-compression` |
+| Writing system prompts, tool docs, or agent definitions | `system-prompts` |
 | Interacting with Sentry via CLI (issues, events, projects, orgs) | `sentry-cli` |
 | Asked to review changes, find bugs, security review, or audit code | `find-bugs` |
 | Need to navigate websites, test web UIs, take screenshots, or interact with web pages | `agent-browser` |

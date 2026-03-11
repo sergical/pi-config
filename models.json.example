@@ -1,0 +1,14 @@
+{
+  "_comment": [
+    "Copy to ~/.pi/agent/models.json and uncomment the provider you want.",
+    "The 'anthropic' provider is the default (direct API).",
+    "Switch to 'amazon-bedrock' by setting defaultProvider in settings.json.",
+    "Or override the anthropic provider baseUrl for a proxy."
+  ],
+  "providers": {
+    "anthropic": {
+      "_comment": "Override to route through a proxy (e.g., LiteLLM, Portkey)",
+      "baseUrl": "https://api.anthropic.com/v1"
+    }
+  }
+}

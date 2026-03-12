@@ -47,7 +47,7 @@ if [ ! -f "$EXPECTED_DIR/settings.json" ]; then
 {
   "defaultThinkingLevel": "high",
   "defaultProvider": "$PROVIDER",
-  "defaultModel": "claude-sonnet-4-6",
+  "defaultModel": "us.anthropic.claude-sonnet-4-6",
   "hideThinkingBlock": false,
   "packages": [
     "git:github.com/nicobailon/pi-subagents",
@@ -57,7 +57,7 @@ if [ ! -f "$EXPECTED_DIR/settings.json" ]; then
 }
 EOF
   echo ""
-  echo "  ✓ Created settings.json (provider: $PROVIDER, model: claude-sonnet-4-6)"
+  echo "  ✓ Created settings.json (provider: $PROVIDER, model: us.anthropic.claude-sonnet-4-6)"
   echo ""
 else
   echo "settings.json already exists — skipping"

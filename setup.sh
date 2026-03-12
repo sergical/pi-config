@@ -32,6 +32,7 @@ if [ ! -f "$EXPECTED_DIR/settings.json" ]; then
   case "$provider_choice" in
     2|bedrock)
       PROVIDER="amazon-bedrock"
+      DEFAULT_MODEL="us.anthropic.claude-sonnet-4-6"
       echo ""
       echo "  Using Bedrock. Make sure AWS credentials are configured:"
       echo "    export AWS_PROFILE=your-profile"
@@ -40,6 +41,7 @@ if [ ! -f "$EXPECTED_DIR/settings.json" ]; then
       ;;
     *)
       PROVIDER="anthropic"
+      DEFAULT_MODEL="claude-sonnet-4-6"
       ;;
   esac
 
@@ -47,7 +49,7 @@ if [ ! -f "$EXPECTED_DIR/settings.json" ]; then
 {
   "defaultThinkingLevel": "high",
   "defaultProvider": "$PROVIDER",
-  "defaultModel": "us.anthropic.claude-sonnet-4-6",
+  "defaultModel": "$DEFAULT_MODEL",
   "hideThinkingBlock": false,
   "packages": [
     "git:github.com/nicobailon/pi-subagents",
@@ -57,7 +59,7 @@ if [ ! -f "$EXPECTED_DIR/settings.json" ]; then
 }
 EOF
   echo ""
-  echo "  ✓ Created settings.json (provider: $PROVIDER, model: us.anthropic.claude-sonnet-4-6)"
+  echo "  ✓ Created settings.json (provider: $PROVIDER, model: $DEFAULT_MODEL)"
   echo ""
 else
   echo "settings.json already exists — skipping"

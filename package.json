@@ -1,7 +1,7 @@
 {
   "name": "pi-config",
   "version": "1.0.0",
-  "description": "Personal pi coding agent configuration - skills and extensions",
+  "description": "Personal pi coding agent configuration — clone to ~/.pi/agent/",
   "keywords": ["pi-package"],
   "author": "sergiydybskiy",
   "license": "MIT",

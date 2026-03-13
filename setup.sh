@@ -52,7 +52,10 @@ if [ ! -f "$EXPECTED_DIR/settings.json" ]; then
   "packages": [
     "git:github.com/nicobailon/pi-subagents",
     "git:github.com/nicobailon/pi-mcp-adapter",
-    "git:github.com/HazAT/pi-smart-sessions"
+    "git:github.com/HazAT/pi-smart-sessions",
+    "git:github.com/HazAT/pi-parallel",
+    "git:github.com/HazAT/glimpse",
+    "git:github.com/sasha-computer/pi-cmux"
   ]
 }
 EOF
@@ -69,7 +72,18 @@ echo "Installing packages..."
 pi install git:github.com/nicobailon/pi-subagents 2>/dev/null || echo "  pi-subagents already installed"
 pi install git:github.com/nicobailon/pi-mcp-adapter 2>/dev/null || echo "  pi-mcp-adapter already installed"
 pi install git:github.com/HazAT/pi-smart-sessions 2>/dev/null || echo "  pi-smart-sessions already installed"
+pi install git:github.com/HazAT/pi-parallel 2>/dev/null || echo "  pi-parallel already installed"
+pi install git:github.com/HazAT/glimpse 2>/dev/null || echo "  glimpse already installed"
+pi install git:github.com/sasha-computer/pi-cmux 2>/dev/null || echo "  pi-cmux already installed"
 echo ""
+
+# ─── Extension dependencies ───────────────────────────────────────────────────
+if [ -f "$EXPECTED_DIR/extensions/claude-tool/package.json" ]; then
+  echo "Installing claude-tool dependencies..."
+  cd "$EXPECTED_DIR/extensions/claude-tool" && npm install --silent
+  cd "$EXPECTED_DIR"
+  echo ""
+fi
 
 # ─── Auth reminder ─────────────────────────────────────────────────────────────
 PROVIDER_SET=$(grep -o '"defaultProvider": *"[^"]*"' "$EXPECTED_DIR/settings.json" | grep -o '"[^"]*"$' | tr -d '"')

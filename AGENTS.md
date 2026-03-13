@@ -40,6 +40,24 @@ Avoid over-engineering. Only make changes that are directly requested or clearly
 
 **The right amount of complexity is the minimum needed for the current task.**
 
+
+### Think Forward
+
+There is only a way forward. Backward compatibility is a concern for libraries and SDKs — not for products. When building a product, **never hedge with fallback code, legacy shims, or defensive workarounds** for situations that no longer exist or may never occur. That's wasted cycles.
+
+Instead, ask: *what is the cleanest solution if we had no history to protect?* Then build that.
+
+The best solutions feel almost obvious in hindsight — so logically simple and well-fitted to the problem that you wonder why it wasn't always done this way. That's the target. If your design needs extensive fallbacks, feature flags for old behavior, or compatibility layers for hypothetical consumers, stop and rethink. Complexity that serves the past is dead weight.
+
+**Rules:**
+- No fallback code "just in case" — if it's not needed now, don't write it
+- No backwards-compat shims in product code (libraries/SDKs are the exception)
+- No defensive handling of deprecated or removed paths
+- If the old way was wrong, delete it — don't preserve it behind a flag
+
+**If it doesn't feel clean and inevitable, the design isn't done yet.**
+
+
 ### Respect Project Convention Files
 
 Many projects contain agent instruction files from other tools. Be mindful of these when working in any project:
@@ -159,9 +177,20 @@ All agent working files are archived to `~/.pi/history/<project>/` where `<proje
   scouts/                 # Scout context snapshots (YYYY-MM-DD-HHMMSS-context.md)
   reviews/                # Code reviews (YYYY-MM-DD-HHMMSS-review.md)
   research/               # Researcher findings (YYYY-MM-DD-HHMMSS-research.md)
+  visual-tests/           # Visual test reports (YYYY-MM-DD-HHMMSS-report.md)
+  claude-sessions.json    # Claude Code session index (last 50)
 ```
 
 **Working copies** live in `<project>/.pi/` during chain execution and get cleaned up by workers. **Archives** in `~/.pi/history/` are permanent.
+
+
+To browse past investigations for a project:
+```bash
+ls ~/.pi/history/$(basename "$PWD")/scouts/
+ls ~/.pi/history/$(basename "$PWD")/reviews/
+ls ~/.pi/history/$(basename "$PWD")/research/
+```
+
 
 ### Delegate to Subagents
 
@@ -174,7 +203,7 @@ All agent working files are archived to `~/.pi/history/<project>/` where `<proje
 | `scout` | Fast codebase reconnaissance | Haiku (fast, cheap) |
 | `worker` | Implements tasks from todos, makes polished commits (always using the `commit` skill), and closes the todo | Opus 4.6 (heavy lifting) |
 | `reviewer` | Reviews code for quality/security | Sonnet 4.6 |
-| `researcher` | Deep research using Claude Code (web research, code analysis, technical exploration) | Opus 4.6 → Claude Code |
+| `researcher` | Deep research using parallel.ai tools (web search, extraction, synthesis) + Claude Code for code analysis | Opus 4.6 |
 
 **Planning happens in the main session** (interactive, with user feedback) — not delegated to subagents.
 
@@ -188,7 +217,7 @@ All agent working files are archived to `~/.pi/history/<project>/` where `<proje
 - **Todos ready to execute** → Spawn `scout` then `worker` agents
 - **Code review needed** → Delegate to `reviewer`
 - **Need context first** → Start with `scout`
-- **Web research or external info needed** → Delegate to `researcher`
+- **Web research or external info needed** → Delegate to `researcher` (uses parallel.ai tools for web, Claude Code for code analysis)
 
 #### Chain Patterns
 
@@ -250,5 +279,6 @@ Skills provide specialized instructions for specific tasks. Load them when the c
 | Interacting with Sentry via CLI (issues, events, projects, orgs) | `sentry-cli` |
 | Asked to review changes, find bugs, security review, or audit code | `find-bugs` |
 | Need to navigate websites, test web UIs, take screenshots, or interact with web pages | `agent-browser` |
+| Running dev servers, test watchers, background tasks, or any process in a separate terminal | `cmux` |
 
 **The `commit` skill is mandatory for every single commit.** No quick `git commit -m "fix stuff"` — every commit gets the full treatment with a descriptive subject and body.

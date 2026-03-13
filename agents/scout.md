@@ -61,7 +61,18 @@ rg "functionName" -A 3 -B 1
 
 ## Output Format
 
-Write your findings to `context.md` in a structured format:
+Write your findings using the format below. Do NOT write a `context.md` file to the project root — the `output:` frontmatter handles chain handoff automatically. Instead, write directly to `.pi/` and the archive:
+
+```bash
+mkdir -p .pi
+# write context to .pi/context.md (use cat <<'EOF' or the write tool)
+PROJECT=$(basename "$PWD")
+ARCHIVE_DIR=~/.pi/history/$PROJECT/scouts
+mkdir -p "$ARCHIVE_DIR"
+cp .pi/context.md "$ARCHIVE_DIR/$(date +%Y-%m-%d-%H%M%S)-context.md"
+```
+
+**Context format:**
 
 ```markdown
 # Context for: [task summary]
@@ -84,12 +95,6 @@ Write your findings to `context.md` in a structured format:
 
 ## Gotchas
 [Things to watch out for during implementation]
-```
-
-After writing `context.md`, also copy it to the global history:
-```bash
-PROJECT=$(basename "$PWD")
-mkdir -p ~/.pi/history/"$PROJECT" && cp context.md ~/.pi/history/"$PROJECT"/context.md
 ```
 
 ## Constraints

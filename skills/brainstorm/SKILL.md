@@ -434,7 +434,7 @@ If the user requests visual testing, confirm prerequisites:
 
 > "Two things I need before running the visual tester:
 > 1. Is your local dev server running? (e.g., `npm run dev`)
-> 2. Is the Playwriter Chrome extension connected? (Click the extension icon on your localhost tab)"
+> 2. Is Chrome remote debugging enabled? (`chrome://inspect/#remote-debugging` → toggle the switch)"
 
 ### Running the Visual Tester
 

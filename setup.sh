@@ -77,6 +77,7 @@ pi install git:github.com/HazAT/pi-smart-sessions 2>/dev/null || echo "  pi-smar
 pi install git:github.com/HazAT/pi-parallel 2>/dev/null || echo "  pi-parallel already installed"
 pi install git:github.com/HazAT/glimpse 2>/dev/null || echo "  glimpse already installed"
 pi install git:github.com/sasha-computer/pi-cmux 2>/dev/null || echo "  pi-cmux already installed"
+pi install https://github.com/davebcn87/pi-autoresearch 2>/dev/null || echo "  pi-autoresearch already installed"
 echo ""
 
 # ─── Extension dependencies ───────────────────────────────────────────────────

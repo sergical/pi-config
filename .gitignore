@@ -8,6 +8,12 @@ bin/
 settings.json
 models.json
 
+# Local state
+sentry-monitor.json
+
+# Symlinked skills (installed locally, not portable)
+skills/qmd-knowledge
+
 # Pi runtime files (created when this repo is ~/.pi/agent/)
 git/
 mcp-cache.json

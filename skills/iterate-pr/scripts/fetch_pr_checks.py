@@ -6,10 +6,9 @@
 Fetch PR CI checks and extract relevant failure snippets.
 
 Usage:
-    python fetch_pr_checks.py [--pr PR_NUMBER]
+    uv run fetch_pr_checks.py [--pr PR_NUMBER]
 
 If --pr is not specified, uses the PR for the current branch.
-
 Output: JSON to stdout with structured check data.
 """
 from __future__ import annotations
@@ -40,7 +39,6 @@ def run_gh(args: list[str]) -> dict[str, Any] | list[Any] | None:
 
 
 def get_pr_info(pr_number: int | None = None) -> dict[str, Any] | None:
-    """Get PR info, optionally by number or for current branch."""
     args = ["pr", "view", "--json", "number,url,headRefName,baseRefName"]
     if pr_number:
         args.insert(2, str(pr_number))
@@ -48,16 +46,11 @@ def get_pr_info(pr_number: int | None = None) -> dict[str, Any] | None:
 
 
 def get_checks(pr_number: int | None = None) -> list[dict[str, Any]]:
-    """Get all checks for a PR by parsing tab-separated gh output."""
     args = ["gh", "pr", "checks"]
     if pr_number:
         args.append(str(pr_number))
     try:
-        result = subprocess.run(
-            args,
-            capture_output=True,
-            text=True,
-        )
+        result = subprocess.run(args, capture_output=True, text=True)
         if not result.stdout.strip():
             return []
         checks = []
@@ -78,7 +71,6 @@ def get_checks(pr_number: int | None = None) -> list[dict[str, Any]]:
 
 
 def get_failed_runs(branch: str) -> list[dict[str, Any]]:
-    """Get recent failed workflow runs for a branch."""
     result = run_gh([
         "run", "list",
         "--branch", branch,
@@ -87,18 +79,12 @@ def get_failed_runs(branch: str) -> list[dict[str, Any]]:
     ])
     if not isinstance(result, list):
         return []
-    # Return runs that failed or are in progress
     return [r for r in result if r.get("conclusion") == "failure"]
 
 
 def extract_failure_snippet(log_text: str, max_lines: int = 50) -> str:
-    """Extract relevant failure snippet from log text.
-
-    Looks for common failure markers and extracts surrounding context.
-    """
     lines = log_text.split("\n")
 
-    # Patterns that indicate failure points (case-insensitive via re.IGNORECASE)
     failure_patterns = [
         r"error[:\s]",
         r"failed[:\s]",
@@ -121,30 +107,25 @@ def extract_failure_snippet(log_text: str, max_lines: int = 50) -> str:
         r"NameError",
         r"IndentationError",
         r"===.*FAILURES.*===",
-        r"___.*___",  # pytest failure separators
+        r"___.*___",
     ]
 
     combined_pattern = "|".join(failure_patterns)
 
-    # Find lines matching failure patterns
     failure_indices = []
     for i, line in enumerate(lines):
         if re.search(combined_pattern, line, re.IGNORECASE):
             failure_indices.append(i)
 
     if not failure_indices:
-        # No clear failure point, return last N lines
         return "\n".join(lines[-max_lines:])
 
-    # Extract context around first failure point
-    # Include some context before and after
     first_failure = failure_indices[0]
     start = max(0, first_failure - 5)
     end = min(len(lines), first_failure + max_lines - 5)
 
     snippet_lines = lines[start:end]
 
-    # If there are more failures after our snippet, note it
     remaining_failures = [i for i in failure_indices if i >= end]
     if remaining_failures:
         snippet_lines.append(f"\n... ({len(remaining_failures)} more error(s) follow)")
@@ -153,7 +134,6 @@ def extract_failure_snippet(log_text: str, max_lines: int = 50) -> str:
 
 
 def get_run_logs(run_id: int) -> str | None:
-    """Get failed logs for a workflow run."""
     try:
         result = subprocess.run(
             ["gh", "run", "view", str(run_id), "--log-failed"],
@@ -162,9 +142,7 @@ def get_run_logs(run_id: int) -> str | None:
             timeout=60,
         )
         return result.stdout if result.stdout else result.stderr
-    except subprocess.TimeoutExpired:
-        return None
-    except subprocess.CalledProcessError:
+    except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
         return None
 
 
@@ -173,7 +151,6 @@ def main():
     parser.add_argument("--pr", type=int, help="PR number (defaults to current branch PR)")
     args = parser.parse_args()
 
-    # Get PR info
     pr_info = get_pr_info(args.pr)
     if not pr_info:
         print(json.dumps({"error": "No PR found for current branch"}))
@@ -182,12 +159,10 @@ def main():
     pr_number = pr_info["number"]
     branch = pr_info["headRefName"]
 
-    # Get checks
     checks = get_checks(pr_number)
 
-    # Process checks and add failure snippets
     processed_checks = []
-    failed_runs = None  # Lazy load
+    failed_runs = None
 
     for check in checks:
         processed = {
@@ -197,12 +172,10 @@ def main():
             "workflow": check.get("workflow", ""),
         }
 
-        # For failures, try to get log snippet
         if processed["status"] == "fail":
             if failed_runs is None:
                 failed_runs = get_failed_runs(branch)
 
-            # Find matching run by workflow name
             workflow_name = processed["workflow"] or processed["name"]
             matching_run = next(
                 (r for r in failed_runs if workflow_name in r.get("name", "")),
@@ -217,7 +190,6 @@ def main():
 
         processed_checks.append(processed)
 
-    # Build output
     output = {
         "pr": {
             "number": pr_number,

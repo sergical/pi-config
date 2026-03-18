@@ -166,32 +166,6 @@ You can execute slash commands yourself using the `execute_command` tool:
 - **Run `/answer`** after asking multiple questions — don't make the user invoke it
 - **Send follow-up prompts** to yourself
 
-### History & Archives
-
-All agent working files are archived to `~/.pi/history/<project>/` where `<project>` is `basename $PWD`. Nothing is ever lost.
-
-```
-~/.pi/history/<project>/
-  plans/                  # Brainstorm plans (YYYY-MM-DD-name.md)
-  todos/                  # Todo files
-  scouts/                 # Scout context snapshots (YYYY-MM-DD-HHMMSS-context.md)
-  reviews/                # Code reviews (YYYY-MM-DD-HHMMSS-review.md)
-  research/               # Researcher findings (YYYY-MM-DD-HHMMSS-research.md)
-  visual-tests/           # Visual test reports (YYYY-MM-DD-HHMMSS-report.md)
-  claude-sessions.json    # Claude Code session index (last 50)
-```
-
-**Working copies** live in `<project>/.pi/` during chain execution and get cleaned up by workers. **Archives** in `~/.pi/history/` are permanent.
-
-
-To browse past investigations for a project:
-```bash
-ls ~/.pi/history/$(basename "$PWD")/scouts/
-ls ~/.pi/history/$(basename "$PWD")/reviews/
-ls ~/.pi/history/$(basename "$PWD")/research/
-```
-
-
 ### Delegate to Subagents
 
 **Prefer subagent delegation** for any task that involves multiple steps or could benefit from specialized focus.
@@ -201,16 +175,68 @@ ls ~/.pi/history/$(basename "$PWD")/research/
 | Agent | Purpose | Model |
 |-------|---------|-------|
 | `scout` | Fast codebase reconnaissance | Haiku (fast, cheap) |
-| `worker` | Implements tasks from todos, makes polished commits (always using the `commit` skill), and closes the todo | Opus 4.6 (heavy lifting) |
+| `worker` | Implements tasks from todos, makes polished commits (always using the `commit` skill), and closes the todo | Sonnet 4.6 |
 | `reviewer` | Reviews code for quality/security | Sonnet 4.6 |
-| `researcher` | Deep research using parallel.ai tools (web search, extraction, synthesis) + Claude Code for code analysis | Opus 4.6 |
+| `researcher` | Deep research using parallel.ai tools (web search, extraction, synthesis) + Claude Code for code analysis | Sonnet 4.6 |
+| `planner` | Interactive brainstorming and planning — clarifies requirements, explores approaches, writes plans, creates todos | Opus 4.6 (medium thinking) |
 
-**Planning happens in the main session** (interactive, with user feedback) — not delegated to subagents.
+#### Subagents
 
-#### MCP Servers
+Subagents spawn visible pi sessions in cmux terminals. The user can watch progress in real-time and optionally interact. Autonomous agents call `subagent_done` to self-terminate.
 
-- **Sentry MCP** — Query issues, events, and project data directly. Use it when you need Sentry context during debugging or investigation.
-- **Vercel MCP** — Manage deployments, projects, logs, domains, and environment variables. Use it for deployment status, checking logs, or managing Vercel project settings.
+The `agent` parameter loads defaults from `~/.pi/agent/agents/<name>.md`. Model, tools, skills, thinking — all inherited. Explicit params override agent defaults.
+
+```typescript
+// Use existing agent definitions — full transparency
+subagent({ name: "Scout", agent: "scout", interactive: false, task: "Analyze the codebase..." })
+subagent({ name: "Worker", agent: "worker", interactive: false, task: "Implement TODO-xxxx..." })
+subagent({ name: "Reviewer", agent: "reviewer", interactive: false, task: "Review recent changes..." })
+subagent({ name: "Researcher", agent: "researcher", interactive: false, task: "Research [topic]..." })
+
+// Planner — interactive, loads config from ~/.pi/agent/agents/planner.md
+subagent({
+  name: "Planner",
+  agent: "planner",
+  interactive: true,
+  task: "Plan: [description]. Context: [relevant info]"
+})
+
+// Iterate — fork the session for focused work, full context preserved
+subagent({ name: "Iterate", interactive: true, fork: true, task: "Fix the bug where..." })
+
+// Override agent defaults when needed
+subagent({ name: "Worker", agent: "worker", model: "us.anthropic.claude-haiku-4-5", task: "Quick fix..." })
+
+// Parallel subagents — run multiple agents concurrently with tiled layout
+parallel_subagents({
+  agents: [
+    { name: "Scout: Auth", agent: "scout", task: "Analyze auth module" },
+    { name: "Scout: DB", agent: "scout", task: "Map database schema" },
+  ]
+})
+```
+
+**Parallel execution:** Use `parallel_subagents` to run multiple autonomous agents concurrently. Each gets its own cmux terminal in a tiled layout (first splits right, subsequent stack vertically). Progress updates stream in as each agent finishes — no waiting for all to complete.
+
+Subagents are full pi sessions — all extensions and skills auto-discover. A subagent can spawn another subagent (e.g., planner spawns a scout). Agent `.md` files in `~/.pi/agent/agents/` define model, tools, skills, thinking level.
+
+**Slash commands:**
+- `/plan <what to build>` — start the full planning workflow (investigate → planner → execute → review)
+- `/subagent <agent> <task>` — spawn a subagent by name (e.g., `/subagent scout analyze auth module`)
+- `/iterate [task]` — fork session into interactive subagent for quick fixes
+
+**Iterate pattern** — for quick fixes and ad-hoc work after a big implementation. The user branches off into a focused subagent, fixes a bug or makes a change, then comes back with just the summary. Keeps the main session's context clean.
+
+```typescript
+subagent({
+  name: "Iterate",
+  interactive: true,
+  fork: true,
+  task: "[describe the bug or change needed]"
+})
+```
+
+`fork: true` copies the current session — the sub-agent has full conversation context. All extensions and skills auto-discover (no `extensions` param = everything). Use when the user says "let me fix this real quick", "iterate on this", or when they want focused work without polluting the main session's context.
 
 #### When to Delegate
 
@@ -218,32 +244,6 @@ ls ~/.pi/history/$(basename "$PWD")/research/
 - **Code review needed** → Delegate to `reviewer`
 - **Need context first** → Start with `scout`
 - **Web research or external info needed** → Delegate to `researcher` (uses parallel.ai tools for web, Claude Code for code analysis)
-
-#### Chain Patterns
-
-**Standard implementation flow:**
-```typescript
-{ chain: [
-  { agent: "scout", task: "Gather context for [feature]. Key files: [list relevant files]" },
-  { agent: "worker", task: "Implement TODO-xxxx. Use the commit skill to write a polished, descriptive commit message. Mark the todo as done. Plan: ~/.pi/history/<project>/plans/YYYY-MM-DD-feature.md" },
-  { agent: "worker", task: "Implement TODO-yyyy. Use the commit skill to write a polished, descriptive commit message. Mark the todo as done. Plan: ~/.pi/history/<project>/plans/YYYY-MM-DD-feature.md" },
-  { agent: "reviewer", task: "Review implementation. Plan: ~/.pi/history/<project>/plans/YYYY-MM-DD-feature.md" }
-]}
-```
-
-**Quick fix (no plan needed):**
-```typescript
-{ chain: [
-  { agent: "worker", task: "Fix [specific issue]. Use the commit skill to write a polished, descriptive commit message. Mark the todo as done." },
-  { agent: "reviewer" }
-]}
-```
-
-#### Commits, Not Merges
-
-**Do NOT squash merge or merge feature branches back into main.** Work stays on the feature branch with individual, polished commits. Each completed todo should result in a well-crafted commit using the `commit` skill — every single time, no exceptions. The commit message should be descriptive and tell the story of what changed and why.
-
-**Never amend commits on `main` (or `master`).** Amending is only acceptable on feature branches. Before running `git commit --amend`, check the current branch — if it's `main` or `master`, create a new commit instead.
 
 #### When NOT to Delegate
 

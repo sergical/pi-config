@@ -1,15 +1,16 @@
 ---
 name: iterate-pr
 description: Iterate on a PR until CI passes. Use when you need to fix CI failures, address review feedback, or continuously push fixes until all checks are green. Automates the feedback-fix-push-wait cycle.
+license: Adapted from getsentry/skills
 ---
 
 # Iterate on PR Until CI Passes
 
 Continuously iterate on the current branch until all CI checks pass and review feedback is addressed.
 
-**Requires**: GitHub CLI (`gh`) authenticated.
+**Requires**: GitHub CLI (`gh`) authenticated, Python 3.9+, `uv` (for inline script deps).
 
-**Important**: All scripts must be run from the repository root directory (where `.git` is located), not from the skill directory. Use the full path to the script via `${CLAUDE_SKILL_ROOT}`.
+Scripts are in the `scripts/` directory relative to this skill file. Resolve paths against the skill directory.
 
 ## Bundled Scripts
 
@@ -18,7 +19,7 @@ Continuously iterate on the current branch until all CI checks pass and review f
 Fetches CI check status and extracts failure snippets from logs.
 
 ```bash
-uv run ${CLAUDE_SKILL_ROOT}/scripts/fetch_pr_checks.py [--pr NUMBER]
+uv run scripts/fetch_pr_checks.py [--pr NUMBER]
 ```
 
 Returns JSON:
@@ -35,23 +36,23 @@ Returns JSON:
 
 ### `scripts/fetch_pr_feedback.py`
 
-Fetches and categorizes PR review feedback using the [LOGAF scale](https://develop.sentry.dev/engineering-practices/code-review/#logaf-scale).
+Fetches and categorizes PR review feedback by priority.
 
 ```bash
-uv run ${CLAUDE_SKILL_ROOT}/scripts/fetch_pr_feedback.py [--pr NUMBER]
+uv run scripts/fetch_pr_feedback.py [--pr NUMBER]
 ```
 
 Returns JSON with feedback categorized as:
-- `high` - Must address before merge (`h:`, blocker, changes requested)
-- `medium` - Should address (`m:`, standard feedback)
-- `low` - Optional (`l:`, nit, style, suggestion)
-- `bot` - Informational automated comments (Codecov, Dependabot, etc.)
-- `resolved` - Already resolved threads
+- `high` — Must address before merge (blocker, changes requested)
+- `medium` — Should address (standard feedback)
+- `low` — Optional (nit, style, suggestion)
+- `bot` — Informational automated comments (Codecov, Dependabot, etc.)
+- `resolved` — Already resolved threads
 
-Review bot feedback (from Sentry, Warden, Cursor, Bugbot, CodeQL, etc.) appears in `high`/`medium`/`low` with `review_bot: true` — it is NOT placed in the `bot` bucket.
+Review bot feedback (from CodeQL, Copilot, etc.) appears in `high`/`medium`/`low` with `review_bot: true` — it is NOT placed in the `bot` bucket.
 
-Each feedback item may also include:
-- `thread_id` - GraphQL node ID for inline review comments (used for replies)
+Each feedback item may include:
+- `thread_id` — GraphQL node ID for inline review comments (used for replies)
 
 ## Workflow
 
@@ -65,13 +66,13 @@ Stop if no PR exists for the current branch.
 
 ### 2. Gather Review Feedback
 
-Run `${CLAUDE_SKILL_ROOT}/scripts/fetch_pr_feedback.py` to get categorized feedback already posted on the PR.
+Run `scripts/fetch_pr_feedback.py` to get categorized feedback already posted on the PR.
 
-### 3. Handle Feedback by LOGAF Priority
+### 3. Handle Feedback by Priority
 
 **Auto-fix (no prompt):**
-- `high` - must address (blockers, security, changes requested)
-- `medium` - should address (standard feedback)
+- `high` — must address (blockers, security, changes requested)
+- `medium` — should address (standard feedback)
 
 When fixing feedback:
 - Understand the root cause, not just the surface symptom
@@ -84,11 +85,11 @@ This includes review bot feedback (items with `review_bot: true`). Treat it the 
 - Never silently ignore review bot feedback — always verify the finding
 
 **Prompt user for selection:**
-- `low` - present numbered list and ask which to address:
+- `low` — present numbered list and ask which to address:
 
 ```
 Found 3 low-priority suggestions:
-1. [l] "Consider renaming this variable" - @reviewer in api.py:42
+1. [nit] "Consider renaming this variable" - @reviewer in api.py:42
 2. [nit] "Could use a list comprehension" - @reviewer in utils.py:18
 3. [style] "Add a docstring" - @reviewer in models.py:55
 
@@ -111,15 +112,14 @@ After processing each inline review comment, reply on the PR thread to acknowled
 
 **Reply format:**
 - 1-2 sentences: what was changed, why it's not an issue, or acknowledgment of declined items
-- End every reply with `\n\n*— Claude Code*`
-- Before replying, check if the thread already has a reply ending with `*- Claude Code*` or `*— Claude Code*` to avoid duplicates on re-loops
+- Before replying, check if the thread already has a reply from a bot/agent to avoid duplicates on re-loops
 - If the `gh api` call fails, log and continue — do not block the workflow
 
 ### 4. Check CI Status
 
-Run `${CLAUDE_SKILL_ROOT}/scripts/fetch_pr_checks.py` to get structured failure data.
+Run `scripts/fetch_pr_checks.py` to get structured failure data.
 
-**Wait if pending:** If review bot checks (sentry, warden, cursor, bugbot, seer, codeql) are still running, wait before proceeding—they post actionable feedback that must be evaluated. Informational bots (codecov) are not worth waiting for.
+**Wait if pending:** If review bot checks are still running, wait before proceeding — they post actionable feedback that must be evaluated. Informational bots (Codecov) are not worth waiting for.
 
 ### 5. Fix CI Failures
 
@@ -127,9 +127,9 @@ For each failure in the script output:
 1. Read the `log_snippet` and trace backwards from the error to understand WHY it failed — not just what failed
 2. Read the relevant code and check for related issues (e.g., if a type error in one call site, check other call sites)
 3. Fix the root cause with minimal, targeted changes
-4. Find existing tests for the affected code and run them. If the fix introduces behavior not covered by existing tests, extend them to cover it (add a test case, not a whole new test file)
+4. Find existing tests for the affected code and run them. If the fix introduces behavior not covered by existing tests, extend them
 
-Do NOT assume what failed based on check name alone—always read the logs. Do NOT "quick fix and hope" — understand the failure thoroughly before changing code.
+Do NOT assume what failed based on check name alone — always read the logs. Do NOT "quick fix and hope" — understand the failure thoroughly before changing code.
 
 ### 6. Verify Locally, Then Commit and Push
 
@@ -140,9 +140,10 @@ Before committing, verify your fixes locally:
 
 If local verification fails, fix before proceeding — do not push known-broken code.
 
+**Use the `commit` skill** to create polished commits — do not `git commit -m "fix stuff"`.
+
+Then push:
 ```bash
-git add <files>
-git commit -m "fix: <descriptive message>"
 git push
 ```
 
@@ -150,15 +151,15 @@ git push
 
 Poll CI status and review feedback in a loop instead of blocking:
 
-1. Run `uv run ${CLAUDE_SKILL_ROOT}/scripts/fetch_pr_checks.py` to get current CI status
+1. Run `scripts/fetch_pr_checks.py` to get current CI status
 2. If all checks passed → proceed to exit conditions
 3. If any checks failed (none pending) → return to step 5
 4. If checks are still pending:
-   a. Run `uv run ${CLAUDE_SKILL_ROOT}/scripts/fetch_pr_feedback.py` for new review feedback
+   a. Run `scripts/fetch_pr_feedback.py` for new review feedback
    b. Address any new high/medium feedback immediately (same as step 3)
    c. If changes were needed, commit and push (this restarts CI), then continue polling
    d. Sleep 30 seconds, then repeat from sub-step 1
-5. After all checks pass, do a final feedback check: `sleep 10`, then run `uv run ${CLAUDE_SKILL_ROOT}/scripts/fetch_pr_feedback.py`. Address any new high/medium feedback — if changes are needed, return to step 6.
+5. After all checks pass, do a final feedback check: `sleep 10`, then run `scripts/fetch_pr_feedback.py`. Address any new high/medium feedback — if changes are needed, return to step 6.
 
 ### 8. Repeat
 
@@ -175,6 +176,6 @@ If step 7 required code changes (from new feedback after CI passed), return to s
 ## Fallback
 
 If scripts fail, use `gh` CLI directly:
-- `gh pr checks name,state,bucket,link`
+- `gh pr checks --json name,state,bucket,link`
 - `gh run view <run-id> --log-failed`
 - `gh api repos/{owner}/{repo}/pulls/{number}/comments`

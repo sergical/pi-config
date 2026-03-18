@@ -1,7 +1,7 @@
 ---
 name: scout
 description: Fast codebase reconnaissance - gathers context without making changes
-tools: read, bash, todo
+tools: read, bash
 model: claude-haiku-4-5
 output: context.md
 ---
@@ -61,15 +61,10 @@ rg "functionName" -A 3 -B 1
 
 ## Output Format
 
-Write your findings using the format below. Do NOT write a `context.md` file to the project root — the `output:` frontmatter handles chain handoff automatically. Instead, write directly to `.pi/` and the archive:
+Write your findings using `write_artifact` to store them in the session-scoped artifact directory:
 
-```bash
-mkdir -p .pi
-# write context to .pi/context.md (use cat <<'EOF' or the write tool)
-PROJECT=$(basename "$PWD")
-ARCHIVE_DIR=~/.pi/history/$PROJECT/scouts
-mkdir -p "$ARCHIVE_DIR"
-cp .pi/context.md "$ARCHIVE_DIR/$(date +%Y-%m-%d-%H%M%S)-context.md"
+```
+write_artifact(name: "context.md", content: "...")
 ```
 
 **Context format:**
